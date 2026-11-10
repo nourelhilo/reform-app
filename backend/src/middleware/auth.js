@@ -21,29 +21,34 @@ const verifyAuth = async (req, res, next) => {
     });
   }
 
+  let identity;
   try {
-    const decodedToken = await admin.auth().verifyIdToken(token);
-    req.firebaseUser = decodedToken;
-
-    // Find or automatically link user in MongoDB
-    let user = await User.findOne({ firebaseUid: decodedToken.uid });
-    if (!user) {
-      user = await User.create({
-        firebaseUid: decodedToken.uid,
-        email: decodedToken.email || '',
-        name: decodedToken.name || decodedToken.email?.split('@')[0] || 'Athlete',
-        profileImage: decodedToken.picture || '',
-      });
-    }
-
-    req.user = user;
-    next();
-  } catch (error) {
-    console.error('Token verification error:', error.message);
+    identity = await admin.auth().verifyIdToken(token);
+  } catch {
     return res.status(401).json({
       success: false,
-      error: `Unauthorized: Invalid or expired Firebase authentication token (${error.message})`,
+      error: 'Unauthorized: Invalid or expired Firebase token.',
     });
+  }
+
+  if (!identity.email) {
+    return res.status(403).json({ success: false, error: 'An email address is required for this account.' });
+  }
+
+  try {
+    req.firebaseUser = identity;
+    req.user = await User.findOneAndUpdate(
+      { firebaseUid: identity.uid },
+      { $setOnInsert: {
+        email: identity.email,
+        name: identity.name || identity.email.split('@')[0],
+        profileImage: identity.picture || '',
+      } },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+    next();
+  } catch (error) {
+    next(error);
   }
 };
 

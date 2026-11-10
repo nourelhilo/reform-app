@@ -3,9 +3,11 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Camera, Check, Circle, ScanLine, WifiOff } from 'lucide-react';
 import { CameraView } from '../components/CameraView';
 import { useWorkoutSocket } from '../hooks/useWorkoutSocket';
+import { useAuth } from '../hooks/useAuth';
 import { exercises, getExerciseList } from '../services/exercises';
 
 export function CameraCalibration() {
+  const { mongoUser } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const list = getExerciseList(location.state?.exercises);
@@ -22,7 +24,8 @@ export function CameraCalibration() {
       <p>Let Reform find the joints it needs before you start moving.</p>
     </div>
     <div className="studio-layout camera-layout">
-      <div><CameraView onStatus={setCamera} onFrameCapture={sendFrame} targetFps={6} landmarks={landmarks} activeJoints={activeJoints}/></div>
+      <div><CameraView onStatus={setCamera} onFrameCapture={sendFrame} targetFps={6}
+        landmarks={mongoUser?.preferences?.showSkeletonOverlay !== false ? landmarks : null} activeJoints={activeJoints}/></div>
       <aside className="studio-panel camera-instructions">
         <div className="studio-kicker">{exercise.view.toUpperCase()}</div>
         <h2>{exercise.name}</h2>

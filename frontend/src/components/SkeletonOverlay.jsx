@@ -17,18 +17,25 @@ export function SkeletonOverlay({ landmarks, activeJoints = [], width, height })
     for (const [a, b] of connections) {
       if (!valid(a) || !valid(b)) continue;
       const active = activeJoints.includes(a) && activeJoints.includes(b);
-      ctx.strokeStyle = active ? '#d6fb68' : '#f4f7ed99';
+      ctx.strokeStyle = active ? '#e9d0ff' : '#f4f7ed99';
       ctx.lineWidth = active ? 3 : 1.5;
       ctx.beginPath();
       ctx.moveTo(...point(a));
       ctx.lineTo(...point(b));
+      if (active) {
+        ctx.strokeStyle = '#36224a';
+        ctx.lineWidth = 5;
+        ctx.stroke();
+        ctx.strokeStyle = '#e9d0ff';
+        ctx.lineWidth = 2.5;
+      }
       ctx.stroke();
     }
     for (const joint of activeJoints) {
       if (!valid(joint)) continue;
       ctx.beginPath();
       ctx.arc(...point(joint), 4.5, 0, Math.PI * 2);
-      ctx.fillStyle = '#d6fb68';
+      ctx.fillStyle = '#e9d0ff';
       ctx.fill();
     }
   }, [landmarks, activeJoints, width, height]);

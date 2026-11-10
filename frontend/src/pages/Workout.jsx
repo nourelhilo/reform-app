@@ -9,7 +9,7 @@ import { api } from '../services/api';
 
 const displayTime = seconds => [Math.floor(seconds / 60), seconds % 60].map(i => String(i).padStart(2, '0')).join(':');
 
-function WorkoutSet({ id, index, list, onAdvance, onFinish, voice, setVoice, saving }) {
+function WorkoutSet({ id, index, list, onAdvance, onFinish, voice, setVoice, showSkeleton, saving }) {
   const movement = exercises[id];
   const [paused, setPaused] = useState(false);
   const [camera, setCamera] = useState('requesting');
@@ -62,7 +62,7 @@ function WorkoutSet({ id, index, list, onAdvance, onFinish, voice, setVoice, sav
       <div>
         <div className="relative">
           <CameraView onStatus={setCamera} onFrameCapture={paused || saving ? undefined : tracking.sendFrame}
-            landmarks={tracking.landmarks} activeJoints={tracking.activeJoints} />
+            landmarks={showSkeleton ? tracking.landmarks : null} activeJoints={tracking.activeJoints} />
           {paused && <div className="camera-pause"><Pause size={27}/> Workout paused</div>}
         </div>
         <ol className="set-steps" aria-label="Workout sequence">{list.map((key, i) =>
@@ -93,12 +93,13 @@ function WorkoutSet({ id, index, list, onAdvance, onFinish, voice, setVoice, sav
 }
 
 export function Workout() {
-  const { user } = useAuth();
+  const { user, mongoUser } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const list = getExerciseList(location.state?.exercises);
   const [records, setRecords] = useState([]);
-  const [voice, setVoice] = useState(false);
+  const [voiceOverride, setVoice] = useState(null);
+  const voice = voiceOverride ?? Boolean(mongoUser?.preferences?.voiceCoaching);
   const [saving, setSaving] = useState(false);
   const startedAt = useRef(new Date().toISOString());
   const savingRef = useRef(false);
@@ -126,6 +127,7 @@ export function Workout() {
   return <div className="studio-wrap workout-wrap">
     <Link to="/workout/setup" className="studio-back sr-only focus:not-sr-only">Start a new session</Link>
     <WorkoutSet key={records.length} id={list[records.length]} index={records.length} list={list}
-      onAdvance={record => setRecords(current => [...current, record])} onFinish={finish} voice={voice} setVoice={setVoice} saving={saving} />
+      onAdvance={record => setRecords(current => [...current, record])} onFinish={finish} voice={voice}
+      setVoice={setVoice} showSkeleton={mongoUser?.preferences?.showSkeletonOverlay !== false} saving={saving} />
   </div>;
 }

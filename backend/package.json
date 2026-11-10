@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "jest --passWithNoTests"
+    "test": "node --test tests/workout.integration.cjs"
   },
   "dependencies": {
     "cors": "^2.8.5",

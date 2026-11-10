@@ -6,7 +6,7 @@ const waiting = {
   visibility: { status: 'waiting', is_valid: false, message: 'Waiting for the camera.' },
 };
 
-export function useWorkoutSocket(exercise, { paused = false, voice = false } = {}) {
+export function useWorkoutSocket(exercise, { paused = false, voice = false, voiceCooldown = 3 } = {}) {
   const [frame, setFrame] = useState(waiting);
   const [connection, setConnection] = useState('connecting');
   const [reps, setReps] = useState([]);
@@ -14,13 +14,15 @@ export function useWorkoutSocket(exercise, { paused = false, voice = false } = {
   const socket = useRef(null);
   const inFlight = useRef(false);
   const armDeadline = useRef(null);
-  const mode = useRef({ paused, voice });
-  mode.current = { paused, voice };
+  const mode = useRef({ paused, voice, voiceCooldown });
+  const lastSpoken = useRef(-Infinity);
+  mode.current = { paused, voice, voiceCooldown };
 
   useEffect(() => {
     let stopped = false;
     let retry;
     let timeout;
+    let stale;
     let ws;
     setReps([]);
     setReadyFrames(0);
@@ -46,7 +48,15 @@ export function useWorkoutSocket(exercise, { paused = false, voice = false } = {
         if (mode.current.paused) return;
         setFrame(result);
         setReadyFrames(count => result.visibility.is_valid ? Math.min(count + 1, 3) : 0);
-        if (mode.current.voice && result.speechCue && window.speechSynthesis) {
+        clearTimeout(stale);
+        stale = setTimeout(() => {
+          setReadyFrames(0);
+          setFrame(waiting);
+        }, 1100);
+        const now = performance.now();
+        if (mode.current.voice && result.speechCue && window.speechSynthesis &&
+            now - lastSpoken.current >= mode.current.voiceCooldown * 1000) {
+          lastSpoken.current = now;
           window.speechSynthesis.speak(new SpeechSynthesisUtterance(result.speechCue));
         }
       };
@@ -54,6 +64,7 @@ export function useWorkoutSocket(exercise, { paused = false, voice = false } = {
       ws.onclose = () => {
         if (stopped) return;
         clearTimeout(timeout);
+        clearTimeout(stale);
         inFlight.current = false;
         setConnection('offline');
         setFrame(waiting);
@@ -64,12 +75,17 @@ export function useWorkoutSocket(exercise, { paused = false, voice = false } = {
         timeout = setTimeout(() => ws.close(), 5000);
       };
     };
-    try { open(); } catch { setConnection('offline'); }
+    // The first Strict Mode setup is disposed before opening a camera socket.
+    retry = setTimeout(() => {
+      try { open(); } catch { setConnection('offline'); }
+    }, 0);
     return () => {
       stopped = true;
       clearTimeout(retry);
       clearTimeout(timeout);
+      clearTimeout(stale);
       inFlight.current = false;
+      armDeadline.current = null;
       socket.current = null;
       ws?.close();
       if (mode.current.voice) window.speechSynthesis?.cancel();

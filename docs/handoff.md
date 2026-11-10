@@ -1,6 +1,6 @@
 # Reform handoff
 
-The `reform/pose-and-ui` branch contains the pose fixes and a first draft of the landing page, exercise picker, camera check, live workout, and recap. The green palette is temporary. The two images shared in chat are design references for the next pass.
+The local `reform/pose-and-ui` branch contains the pose fixes, functionality checks, and a pastel interface based on the two design references. GitHub publication is deferred. The workout flow and signed-in pages share the new palette; signed-in mobile navigation uses the pill layout.
 
 - **Move / Sync:** Lavender and lilac as the main colors, with butter orange, periwinkle and hot pink accents. Rounded cards, bold black type, playful card illustrations, and a pill-shaped bottom nav.
 - **Health score:** Warm ivory background, black type, dusty pink, powder blue, soft yellow and sage. Keep the clear score hierarchy and comfortable spacing.
@@ -10,7 +10,7 @@ The `reform/pose-and-ui` branch contains the pose fixes and a first draft of the
 
 1. Check out the branch and follow the README. Try a guest workout first; it needs no account or database.
 2. Bring a few labeled clips per exercise, with expected rep counts, including at least one partial rep and one interruption. Follow the [pose validation plan](pose-validation.md) before claiming webcam accuracy.
-3. Apply the pastel palette and mobile navigation to the UI draft. Check the full workout flow on phone and desktop. Test sign-in, saving, and history with your Firebase and MongoDB setup.
+3. Try the workout flow on your own phone and desktop camera, then check sign-in, saving, and history with your Firebase and MongoDB project. Keep any further style changes consistent with the palette above.
 4. **Future feature: Workout Tracker.** Add a dedicated section to log workouts by date with exercises, sets, reps, optional weights, and notes. Let users add a completed webcam session. Decide later whether planned workouts and a calendar belong in the first version. This is separate from the current workout history.
 
 The branch can be reviewed locally without a deployment or migration. Older workout scores were calculated with different rules.

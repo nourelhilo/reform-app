@@ -47,7 +47,7 @@ const GuestRoute = ({ children }) => {
 
 export const App = () => {
   return (
-    <div className="min-h-screen bg-background text-text-primary flex flex-col">
+    <div className="app-shell min-h-screen bg-background text-text-primary flex flex-col">
       <Navbar />
       <main className="flex-1">
         <Routes>

@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema(
     preferences: {
       voiceCoaching: {
         type: Boolean,
-        default: true,
+        default: false,
       },
       soundEffects: {
         type: Boolean,

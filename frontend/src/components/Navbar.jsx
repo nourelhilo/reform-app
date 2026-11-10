@@ -11,21 +11,24 @@ const tabs = [
 export function Navbar() {
   const { user, logout } = useAuth();
   const { pathname } = useLocation();
-  return (
+  const navigation = (mobile = false) => (
+    <nav className={mobile ? 'site-tabs site-tabs--mobile' : 'site-tabs'} aria-label="Main navigation">
+      {tabs.map(([label, path, Icon]) => (
+        <NavLink key={path} to={path} className={({ isActive }) =>
+          (isActive || (label === 'Train' && pathname.startsWith('/workout/'))) ? 'active' : ''}>
+          <Icon size={16} aria-hidden="true" />{label}
+        </NavLink>
+      ))}
+    </nav>
+  );
+  return <>
     <header className="site-header">
       <div className="site-header-inner">
         <Link to="/" className="brand" aria-label="Reform home">
           <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M7 23 14 8h5l-7 15H7Zm9 0 7-15h4l-7 15h-4Z" fill="currentColor"/></svg>
           Reform<span>.</span>
         </Link>
-        {user && <nav className="site-tabs" aria-label="Main navigation">
-          {tabs.map(([label, path, Icon]) => (
-            <NavLink key={path} to={path} className={({ isActive }) =>
-              (isActive || (label === 'Train' && pathname.startsWith('/workout/'))) ? 'active' : ''}>
-              <Icon size={16} aria-hidden="true" />{label}
-            </NavLink>
-          ))}
-        </nav>}
+        {user && navigation()}
         <div className="flex items-center gap-2 sm:gap-3">
           {user ? <>
             <Link className="studio-button subtle compact" aria-label="Profile" to="/profile"><User size={17} /></Link>
@@ -37,5 +40,6 @@ export function Navbar() {
         </div>
       </div>
     </header>
-  );
+    {user && navigation(true)}
+  </>;
 }

@@ -38,7 +38,7 @@ export const ForgotPassword = () => {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 rounded-xl bg-status-error/10 border border-status-error/20 flex items-start gap-3 text-rose-300 text-xs">
+          <div className="mb-6 p-4 rounded-xl bg-status-error/10 border border-status-error/20 flex items-start gap-3 text-rose-800 text-xs">
             <AlertCircle className="w-4 h-4 text-status-error flex-shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>

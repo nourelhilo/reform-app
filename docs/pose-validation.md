@@ -12,7 +12,7 @@ Reform reports inclusion angles in the camera plane. A straight knee or elbow is
 
 These targets are for counting standard movements. A form estimate of 100% means that none of the configured visual cues fired. It does not verify complete form or injury risk. New records use pose rule version 2; older scores are not directly comparable.
 
-- **Automated checks:** 27 tests across five exercises, wide and tall frames, mirroring, partial reps, pauses, occlusion and jitter.
+- **Automated checks:** 27 geometry and exercise tests cover wide and tall frames, mirroring, partial reps, pauses, occlusion and jitter. Four additional tests cover service health, malformed frames, WebSocket origin checks, and a real-person image.
 - **Recorded reference:** The 73-frame Kinect deep squat sample `m01_s01_e01` from [UI-PRMD](https://zenodo.org/records/23104965) produced one counted rep. Side-view angles differed from 3D inclusion angles computed from the same reconstructed joints by 7.9° on average and 38.4° at the worst frame. This is a projection check for one motion and does not measure webcam accuracy.
 - **Pose service smoke test:** The WebSocket decoded a [real-person MediaPipe sample](https://storage.googleapis.com/mediapipe-assets/pose.jpg) and returned 33 landmarks. That confirms the image-to-pose path works for the sample.
 

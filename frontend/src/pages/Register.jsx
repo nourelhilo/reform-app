@@ -62,7 +62,7 @@ export const Register = () => {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 rounded-xl bg-status-error/10 border border-status-error/20 flex items-start gap-3 text-rose-300 text-xs">
+          <div className="mb-6 p-4 rounded-xl bg-status-error/10 border border-status-error/20 flex items-start gap-3 text-rose-800 text-xs">
             <AlertCircle className="w-4 h-4 text-status-error flex-shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
@@ -73,7 +73,7 @@ export const Register = () => {
           type="button"
           onClick={handleGoogleSignUp}
           disabled={loading}
-          className="w-full bg-elevated hover:bg-[#2d3828] border border-border-subtle text-text-primary font-medium text-xs py-3 px-4 rounded-xl flex items-center justify-center gap-3 transition-colors mb-6 disabled:opacity-50"
+          className="w-full bg-elevated hover:bg-[#f1e5fa] border border-border-subtle text-text-primary font-medium text-xs py-3 px-4 rounded-xl flex items-center justify-center gap-3 transition-colors mb-6 disabled:opacity-50"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path
