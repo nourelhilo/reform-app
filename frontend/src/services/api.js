@@ -24,7 +24,7 @@ const request = async (method, path, user = null, body = null) => {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const opts = { method, headers };
+  const opts = { method, headers, signal: AbortSignal.timeout(10000) };
   if (body) opts.body = JSON.stringify(body);
 
   const res = await fetch(fullUrl, opts);

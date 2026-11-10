@@ -171,7 +171,7 @@ export const Profile = () => {
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs font-semibold transition-all disabled:opacity-50 font-mono uppercase tracking-wider"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-background text-xs font-semibold transition-all disabled:opacity-50 font-mono uppercase tracking-wider"
             >
               {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               {loading ? 'Saving…' : 'Save Preferences'}
@@ -187,7 +187,7 @@ export const Profile = () => {
           </div>
           <button
             onClick={logout}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-elevated hover:bg-[#201E26] border border-border-subtle text-rose-400 text-xs font-medium transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-elevated hover:bg-[#2d3828] border border-border-subtle text-rose-400 text-xs font-medium transition-colors"
           >
             <LogOut className="w-3.5 h-3.5" />
             Sign Out

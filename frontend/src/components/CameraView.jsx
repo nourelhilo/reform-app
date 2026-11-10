@@ -1,156 +1,85 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { SkeletonOverlay } from './SkeletonOverlay';
-import { Camera, CameraOff, AlertCircle } from 'lucide-react';
+import { Camera, CameraOff, ScanLine } from 'lucide-react';
 
-export const CameraView = ({
-  landmarks,
-  activeJoints = [],
-  formScore = 100,
-  onFrameCapture,
-  targetFps = 20,
-  showSkeleton = true,
-  className = '',
-}) => {
-  const videoRef = useRef(null);
-  const captureCanvasRef = useRef(null);
-  const [cameraState, setCameraState] = useState('requesting'); // 'ready', 'denied', 'error'
-  const [errorMessage, setErrorMessage] = useState('');
-  const frameIntervalRef = useRef(null);
+export function CameraView({ landmarks, activeJoints, onFrameCapture, onStatus, targetFps = 16 }) {
+  const video = useRef(null);
+  const canvas = useRef(null);
+  const [state, setState] = useState('requesting');
+  const [size, setSize] = useState([640, 480]);
+  const [attempt, setAttempt] = useState(0);
 
-  // Initialize Camera Stream
   useEffect(() => {
-    let stream = null;
-
-    const startCamera = async () => {
+    let ended = false;
+    let stream;
+    const element = video.current;
+    setState('requesting');
+    async function open() {
       try {
-        setCameraState('requesting');
         stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-            facingMode: 'user',
-          },
-          audio: false,
+          video: { width: { ideal: 960 }, height: { ideal: 720 }, facingMode: 'user' }, audio: false,
         });
-
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.onloadedmetadata = () => {
-            videoRef.current.play();
-            setCameraState('ready');
-          };
+        if (ended) {
+          stream.getTracks().forEach(track => track.stop());
+          return;
         }
-      } catch (err) {
-        console.error('Camera access error:', err);
-        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-          setCameraState('denied');
-          setErrorMessage('Camera access was denied. Please allow camera permissions in your browser.');
-        } else {
-          setCameraState('error');
-          setErrorMessage(`Unable to access camera (${err.message}).`);
+        for (const track of stream.getVideoTracks()) {
+          track.addEventListener('ended', () => { if (!ended) setState('unavailable'); }, { once: true });
         }
+        element.srcObject = stream;
+        await element.play();
+        if (!ended) setState('ready');
+      } catch (error) {
+        stream?.getTracks().forEach(track => track.stop());
+        if (!ended) setState(error.name === 'NotAllowedError' ? 'denied' : 'unavailable');
       }
-    };
-
-    startCamera();
-
+    }
+    open();
     return () => {
-      if (stream) {
-        stream.getTracks().forEach((t) => t.stop());
-      }
-      if (frameIntervalRef.current) {
-        clearInterval(frameIntervalRef.current);
-      }
+      ended = true;
+      stream?.getTracks().forEach(track => track.stop());
+      if (element) element.srcObject = null;
     };
-  }, []);
+  }, [attempt]);
 
-  // Frame Capture Loop
+  useEffect(() => { onStatus?.(state); }, [state, onStatus]);
+
   useEffect(() => {
-    if (cameraState !== 'ready' || !onFrameCapture) return;
-
-    const captureFrame = () => {
-      const video = videoRef.current;
-      const canvas = captureCanvasRef.current;
-      if (!video || !canvas || video.readyState < 2) return;
-
-      const width = video.videoWidth || 640;
-      const height = video.videoHeight || 480;
-
-      // Downsample slightly for efficient network & vision processing (640x360 / 640x480)
-      const targetW = 640;
-      const targetH = Math.round((height / width) * 640);
-
-      canvas.width = targetW;
-      canvas.height = targetH;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, targetW, targetH);
-
-      canvas.toBlob(
-        (blob) => {
-          if (blob) {
-            onFrameCapture(blob);
-          }
-        },
-        'image/jpeg',
-        0.75
-      );
-    };
-
-    const intervalMs = Math.round(1000 / targetFps);
-    frameIntervalRef.current = setInterval(captureFrame, intervalMs);
-
-    return () => {
-      if (frameIntervalRef.current) {
-        clearInterval(frameIntervalRef.current);
+    if (state !== 'ready' || !onFrameCapture) return;
+    let active = true;
+    let encoding = false;
+    const surface = canvas.current;
+    const timer = setInterval(() => {
+      const source = video.current;
+      if (encoding || !source?.videoWidth || source.readyState < 2) return;
+      const scale = Math.min(1, 640 / Math.max(source.videoWidth, source.videoHeight));
+      const w = Math.round(source.videoWidth * scale);
+      const h = Math.round(source.videoHeight * scale);
+      if (w !== surface.width || h !== surface.height) {
+        surface.width = w;
+        surface.height = h;
+        setSize([w, h]);
       }
-    };
-  }, [cameraState, onFrameCapture, targetFps]);
+      surface.getContext('2d').drawImage(source, 0, 0, w, h);
+      encoding = true;
+      surface.toBlob(blob => {
+        encoding = false;
+        if (active && blob) onFrameCapture(blob);
+      }, 'image/jpeg', .72);
+    }, 1000 / targetFps);
+    return () => { active = false; clearInterval(timer); };
+  }, [state, onFrameCapture, targetFps]);
 
-  return (
-    <div className={`relative bg-surface rounded-2xl overflow-hidden border border-border-subtle aspect-video flex items-center justify-center ${className}`}>
-      {/* Hidden capture canvas */}
-      <canvas ref={captureCanvasRef} className="hidden" />
-
-      {/* Video Element */}
-      <video
-        ref={videoRef}
-        playsInline
-        muted
-        className={`w-full h-full object-cover -scale-x-100 ${cameraState === 'ready' ? 'block' : 'hidden'}`}
-      />
-
-      {/* Skeleton Overlay */}
-      {cameraState === 'ready' && showSkeleton && (
-        <SkeletonOverlay
-          landmarks={landmarks}
-          activeJoints={activeJoints}
-          formScore={formScore}
-        />
-      )}
-
-      {/* Loading / Error States */}
-      {cameraState === 'requesting' && (
-        <div className="flex flex-col items-center gap-3 text-text-muted">
-          <Camera className="w-10 h-10 animate-pulse text-accent" />
-          <p className="text-sm">Initializing camera stream...</p>
-        </div>
-      )}
-
-      {cameraState === 'denied' && (
-        <div className="flex flex-col items-center text-center p-6 max-w-md">
-          <CameraOff className="w-12 h-12 text-status-error mb-3" />
-          <h3 className="text-lg font-semibold text-text-primary mb-1">Camera Access Required</h3>
-          <p className="text-sm text-text-muted">{errorMessage}</p>
-        </div>
-      )}
-
-      {cameraState === 'error' && (
-        <div className="flex flex-col items-center text-center p-6 max-w-md">
-          <AlertCircle className="w-12 h-12 text-status-warning mb-3" />
-          <h3 className="text-lg font-semibold text-text-primary mb-1">Camera Unavailable</h3>
-          <p className="text-sm text-text-muted">{errorMessage}</p>
-        </div>
-      )}
-    </div>
-  );
-};
+  return <div className="camera-stage">
+    <canvas ref={canvas} className="hidden" width="640" height="480" />
+    <video ref={video} muted playsInline className="camera-video" hidden={state !== 'ready'} />
+    {state === 'ready' && <SkeletonOverlay landmarks={landmarks} activeJoints={activeJoints} width={size[0]} height={size[1]} />}
+    <span className="camera-badge"><ScanLine size={15} /> Camera preview</span>
+    {state !== 'ready' && <div className="camera-placeholder">
+      {state === 'requesting' ? <Camera size={33} /> : <CameraOff size={33} />}
+      <strong>{state === 'requesting' ? 'Waiting for camera access' : state === 'denied' ? 'Camera access is blocked' : 'Camera unavailable'}</strong>
+      <span>{state === 'requesting' ? 'Allow your browser to use the camera.' : 'Check your browser permissions or connect a camera.'}</span>
+      {state !== 'requesting' && <button className="studio-button subtle compact" onClick={() => setAttempt(a => a + 1)}>Try again</button>}
+    </div>}
+  </div>;
+}

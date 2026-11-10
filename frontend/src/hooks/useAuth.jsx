@@ -32,10 +32,10 @@ export const AuthProvider = ({ children }) => {
       if (fbUser) {
         try {
           // Sync with MongoDB backend
-          const syncRes = await api.syncUser({
+          const syncRes = await api.syncUser(fbUser, {
             name: fbUser.displayName || '',
             profileImage: fbUser.photoURL || '',
-          }, fbUser);
+          });
           if (syncRes?.user) {
             setMongoUser(syncRes.user);
           }
@@ -80,7 +80,7 @@ export const AuthProvider = ({ children }) => {
           console.warn('Could not send verification email:', e);
         }
         // Sync to MongoDB
-        await api.syncUser({ name }, cred.user).catch(() => {});
+        await api.syncUser(cred.user, { name }).catch(() => {});
       }
       return cred.user;
     } catch (err) {

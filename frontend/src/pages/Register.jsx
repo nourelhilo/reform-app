@@ -73,7 +73,7 @@ export const Register = () => {
           type="button"
           onClick={handleGoogleSignUp}
           disabled={loading}
-          className="w-full bg-elevated hover:bg-[#201E26] border border-border-subtle text-text-primary font-medium text-xs py-3 px-4 rounded-xl flex items-center justify-center gap-3 transition-colors mb-6 disabled:opacity-50"
+          className="w-full bg-elevated hover:bg-[#2d3828] border border-border-subtle text-text-primary font-medium text-xs py-3 px-4 rounded-xl flex items-center justify-center gap-3 transition-colors mb-6 disabled:opacity-50"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path
@@ -180,7 +180,7 @@ export const Register = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-accent hover:bg-accent-hover text-white font-semibold text-xs py-3 rounded-xl transition-colors uppercase tracking-widest font-mono flex items-center justify-center gap-2 mt-6 disabled:opacity-50"
+            className="w-full bg-accent hover:bg-accent-hover text-background font-semibold text-xs py-3 rounded-xl transition-colors uppercase tracking-widest font-mono flex items-center justify-center gap-2 mt-6 disabled:opacity-50"
           >
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
             Create Account

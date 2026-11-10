@@ -8,7 +8,7 @@ const EXERCISE_LABELS = {
   lunge: 'Lunge', jumping_jack: 'Jumping Jack',
 };
 
-const METRIC_COLORS = ['#8B1E3F', '#22c55e', '#f59e0b', '#3b82f6', '#ef4444'];
+const METRIC_COLORS = ['#d6fb68', '#22c55e', '#f59e0b', '#3b82f6', '#ef4444'];
 
 const sparklinePath = (points, width = 100, height = 40) => {
   if (!points || points.length < 2) return '';
@@ -117,11 +117,11 @@ export const Analytics = () => {
                   <svg viewBox="0 0 100 40" className="w-full h-24" preserveAspectRatio="none">
                     <defs>
                       <linearGradient id="analFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#8B1E3F" stopOpacity="0.3" />
-                        <stop offset="100%" stopColor="#8B1E3F" stopOpacity="0" />
+                        <stop offset="0%" stopColor="#d6fb68" stopOpacity="0.3" />
+                        <stop offset="100%" stopColor="#d6fb68" stopOpacity="0" />
                       </linearGradient>
                     </defs>
-                    <path d={sparklinePath(formTrend.map(d => d.formScore))} fill="none" stroke="#8B1E3F" strokeWidth="2" strokeLinecap="round" />
+                    <path d={sparklinePath(formTrend.map(d => d.formScore))} fill="none" stroke="#d6fb68" strokeWidth="2" strokeLinecap="round" />
                   </svg>
                   <div className="mt-2 flex justify-between text-[10px] text-text-muted font-mono">
                     <span>{formTrend[0]?.date || '—'}</span>

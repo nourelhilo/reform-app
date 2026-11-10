@@ -10,7 +10,7 @@ const repDetailSchema = new mongoose.Schema(
     minRomAngle: { type: Number },
     peakVelocity: { type: Number },
     symmetryScore: { type: Number },
-    tempoGood: { type: Boolean, default: true },
+    tempoGood: { type: Boolean },
     timestamp: { type: Date, default: Date.now },
   },
   { _id: false }
@@ -88,6 +88,7 @@ const workoutSchema = new mongoose.Schema(
       default: '',
     },
     meta: {
+      poseRuleVersion: { type: Number },
       cameraUsed: { type: String, default: 'webcam' },
       avgFps: { type: Number },
       avgPoseLatencyMs: { type: Number },

@@ -1,239 +1,73 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
-import { Play, ArrowRight, Activity, Shield, Volume2 } from 'lucide-react';
+import { ArrowDown, ArrowRight, ArrowUpRight, Camera, Gauge, ScanLine, Volume2 } from 'lucide-react';
 
-export const Landing = () => {
-  const { user } = useAuth();
-  const [activeDemo, setActiveDemo] = useState('squat');
-
-  const DEMO_DATA = {
-    squat: {
-      title: 'Squat Engine',
-      phase: 'BOTTOM_INFLECTION',
-      rep: 8,
-      formScore: 94,
-      angles: { knee: '86°', hip: '78°', torso: '14°' },
-      guidance: 'Depth verified. Push evenly through midfoot.',
-    },
-    pushup: {
-      title: 'Push-Up Engine',
-      phase: 'DESCENDING',
-      rep: 14,
-      formScore: 91,
-      angles: { elbow: '82°', spine: '176°', hip: '179°' },
-      guidance: 'Spine neutral. Avoid flaring elbows beyond 45°.',
-    },
-    curl: {
-      title: 'Bicep Curl Engine',
-      phase: 'PEAK_CONTRACTION',
-      rep: 10,
-      formScore: 97,
-      angles: { elbow: '42°', shoulder: '8°', torso: '3°' },
-      guidance: 'Elbow stable at torso. Peak squeeze detected.',
-    },
-  };
-
-  const currentDemo = DEMO_DATA[activeDemo];
-
-  return (
-    <div className="max-w-6xl mx-auto px-6 sm:px-8 py-6 sm:py-8">
-      {/* Hero Grid */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-        {/* Left Column: Direct Value Proposition */}
-        <div className="lg:col-span-6 flex flex-col items-start">
-          <h1 className="text-3xl sm:text-5xl lg:text-5.5xl font-bold tracking-tight text-white leading-[1.1] mb-4">
-            Real-time form tracking through your webcam.
-          </h1>
-
-          <p className="text-sm sm:text-base text-text-muted font-normal leading-relaxed mb-6 max-w-lg">
-            Reform runs computer vision directly in your browser. It calculates 3D joint angles, detects movement phases, counts repetitions, and provides live audio coaching.
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-            <Link
-              to={user ? '/workout/setup' : '/register'}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover text-white text-xs font-semibold px-6 py-3 rounded-xl transition-all shadow-md shadow-accent/20 tracking-wider uppercase font-mono"
-            >
-              <Play className="w-3.5 h-3.5 fill-white" />
-              Start Workout
-            </Link>
-            <Link
-              to={user ? '/dashboard' : '/login'}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#141219] hover:bg-[#1C1A23] border border-white/[0.08] text-white text-xs font-medium px-5 py-3 rounded-xl transition-colors"
-            >
-              {user ? 'Open Dashboard' : 'Sign In'}
-              <ArrowRight className="w-3.5 h-3.5 text-text-muted" />
-            </Link>
-          </div>
-
-          {/* Quick Specs */}
-          <div className="grid grid-cols-3 gap-4 pt-6 mt-6 border-t border-white/[0.07] w-full max-w-lg">
-            <div>
-              <p className="text-base font-semibold text-white font-mono">33 pts</p>
-              <p className="text-[11px] text-text-muted mt-0.5">Pose landmarks</p>
-            </div>
-            <div>
-              <p className="text-base font-semibold text-white font-mono">&lt;20ms</p>
-              <p className="text-[11px] text-text-muted mt-0.5">Inference latency</p>
-            </div>
-            <div>
-              <p className="text-base font-semibold text-white font-mono">100%</p>
-              <p className="text-[11px] text-text-muted mt-0.5">Local webcam stream</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column: Interactive Live HUD Preview */}
-        <div className="lg:col-span-6">
-          <div className="bg-[#121017] border border-white/[0.1] rounded-2xl p-4 sm:p-5 shadow-2xl relative overflow-hidden">
-            {/* Window bar */}
-            <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/[0.06]">
-              <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-white/20" />
-                <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
-                <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
-                <span className="text-[11px] font-mono text-text-muted ml-2">live_feed.cv</span>
-              </div>
-
-              <div className="flex items-center gap-1 bg-[#191621] border border-white/[0.06] rounded-lg p-0.5">
-                {['squat', 'pushup', 'curl'].map((type) => (
-                  <button
-                    key={type}
-                    onClick={() => setActiveDemo(type)}
-                    className={`text-[10px] font-mono uppercase px-2.5 py-1 rounded transition-colors ${
-                      activeDemo === type
-                        ? 'bg-accent text-white font-medium shadow-sm'
-                        : 'text-text-muted hover:text-white'
-                    }`}
-                  >
-                    {type}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Simulated Live Viewport */}
-            <div className="relative rounded-xl bg-[#08070B] border border-white/[0.06] aspect-[4/3] flex items-center justify-center overflow-hidden">
-              <div className="absolute inset-0 opacity-[0.03] [background-image:linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] [background-size:24px_24px]" />
-
-              {/* Simulated Skeleton Geometry */}
-              <svg className="w-full h-full p-6" viewBox="0 0 200 200" fill="none">
-                {activeDemo === 'squat' && (
-                  <g stroke="#F3F0F2" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.85">
-                    <circle cx="100" cy="40" r="10" stroke="#8B1E3F" strokeWidth="2" fill="#141219" />
-                    <line x1="100" y1="50" x2="98" y2="100" />
-                    <line x1="80" y1="60" x2="120" y2="60" />
-                    <polyline points="98,100 70,135 78,175" stroke="#22c55e" strokeWidth="3" />
-                    <polyline points="98,100 126,135 118,175" stroke="#22c55e" strokeWidth="3" />
-                    <circle cx="70" cy="135" r="4" fill="#22c55e" />
-                    <circle cx="126" cy="135" r="4" fill="#22c55e" />
-                  </g>
-                )}
-
-                {activeDemo === 'pushup' && (
-                  <g stroke="#F3F0F2" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.85">
-                    <circle cx="50" cy="100" r="10" stroke="#8B1E3F" strokeWidth="2" fill="#141219" />
-                    <line x1="60" y1="105" x2="165" y2="105" stroke="#22c55e" strokeWidth="3" />
-                    <polyline points="75,105 65,130 80,150" stroke="#8B1E3F" strokeWidth="2.5" />
-                    <line x1="165" y1="105" x2="165" y2="150" />
-                    <circle cx="65" cy="130" r="4" fill="#8B1E3F" />
-                  </g>
-                )}
-
-                {activeDemo === 'curl' && (
-                  <g stroke="#F3F0F2" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.85">
-                    <circle cx="100" cy="35" r="10" stroke="#8B1E3F" strokeWidth="2" fill="#141219" />
-                    <line x1="100" y1="45" x2="100" y2="110" />
-                    <polyline points="100,55 80,95 90,60" stroke="#22c55e" strokeWidth="3" />
-                    <polyline points="100,55 120,95 120,135" />
-                    <line x1="100" y1="110" x2="88" y2="180" />
-                    <line x1="100" y1="110" x2="112" y2="180" />
-                    <circle cx="80" cy="95" r="4" fill="#22c55e" />
-                  </g>
-                )}
-              </svg>
-
-              {/* Floating Angle Badges */}
-              <div className="absolute top-2.5 left-2.5 bg-[#16141E]/90 border border-white/10 backdrop-blur-md rounded-lg p-2 text-[10px] font-mono text-white space-y-0.5">
-                {Object.entries(currentDemo.angles).map(([joint, angle]) => (
-                  <div key={joint} className="flex items-center justify-between gap-2.5">
-                    <span className="text-text-muted capitalize">{joint}:</span>
-                    <span className="text-emerald-400 font-semibold">{angle}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* State Phase Tag */}
-              <div className="absolute top-2.5 right-2.5 bg-white/[0.06] border border-white/10 rounded px-1.5 py-0.5 text-[9px] font-mono text-accent">
-                {currentDemo.phase}
-              </div>
-
-              {/* Live Audio Coaching Bubble */}
-              <div className="absolute bottom-2.5 inset-x-2.5 bg-[#181622]/95 border border-white/10 backdrop-blur-md rounded-lg p-2.5 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Volume2 className="w-3.5 h-3.5 text-accent flex-shrink-0" />
-                  <p className="text-[11px] text-white font-medium">{currentDemo.guidance}</p>
-                </div>
-                <span className="text-[9px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1 py-0.5 rounded">
-                  {currentDemo.formScore}% FORM
-                </span>
-              </div>
-            </div>
-
-            {/* Bottom Rep Summary Bar */}
-            <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-white/[0.06]">
-              <div>
-                <span className="text-[9px] font-mono uppercase text-text-muted">Target Exercise</span>
-                <p className="text-xs font-semibold text-white">{currentDemo.title}</p>
-              </div>
-              <div className="text-right">
-                <span className="text-[9px] font-mono uppercase text-text-muted">Valid Reps</span>
-                <p className="text-xs font-bold font-mono text-white">{currentDemo.rep} <span className="text-[10px] font-normal text-text-muted">/ 15</span></p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Feature Bento Grid */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-8 mt-6 border-t border-white/[0.07]">
-        <div className="bg-[#121016] border border-white/[0.07] rounded-xl p-5 flex flex-col justify-between hover:border-white/[0.12] transition-colors">
-          <div>
-            <div className="w-7 h-7 rounded-lg bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-accent mb-3">
-              <Activity className="w-3.5 h-3.5" />
-            </div>
-            <h3 className="text-xs font-semibold text-white mb-1">3D Coordinate Extraction</h3>
-            <p className="text-[11px] text-text-muted leading-relaxed">
-              Extracts 33 normalized landmark coordinates per frame to calculate precision joint angles.
-            </p>
-          </div>
-        </div>
-
-        <div className="bg-[#121016] border border-white/[0.07] rounded-xl p-5 flex flex-col justify-between hover:border-white/[0.12] transition-colors">
-          <div>
-            <div className="w-7 h-7 rounded-lg bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-accent mb-3">
-              <Shield className="w-3.5 h-3.5" />
-            </div>
-            <h3 className="text-xs font-semibold text-white mb-1">Multi-Phase State Machines</h3>
-            <p className="text-[11px] text-text-muted leading-relaxed">
-              Verifies inflection depths and prevents cheat reps through deterministic range-of-motion thresholds.
-            </p>
-          </div>
-        </div>
-
-        <div className="bg-[#121016] border border-white/[0.07] rounded-xl p-5 flex flex-col justify-between hover:border-white/[0.12] transition-colors">
-          <div>
-            <div className="w-7 h-7 rounded-lg bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-accent mb-3">
-              <Volume2 className="w-3.5 h-3.5" />
-            </div>
-            <h3 className="text-xs font-semibold text-white mb-1">Spoken Feedback Engine</h3>
-            <p className="text-[11px] text-text-muted leading-relaxed">
-              Delivers voice cues with smart cooldowns so you can fix your knee alignment or back posture mid-set.
-            </p>
-          </div>
-        </div>
-      </section>
+function PosePreview() {
+  return <div className="pose-card">
+    <div className="pose-card-top"><span><ScanLine size={16} /> Motion preview</span><span className="sample-tag">Sample</span></div>
+    <div className="pose-art">
+      <svg viewBox="0 0 480 330" role="img" aria-label="Illustrated side view of a squat with shoulder, hip, knee and ankle markers">
+        <defs>
+          <linearGradient id="kit" x1="0" x2="1" y1="0" y2="1">
+            <stop stopColor="#87966a"/><stop offset="1" stopColor="#3b4b33"/>
+          </linearGradient>
+          <linearGradient id="skin" x1="0" x2="1" y1="0" y2="1">
+            <stop stopColor="#b1a891"/><stop offset="1" stopColor="#746954"/>
+          </linearGradient>
+          <pattern id="preview-grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0v24" fill="none" stroke="#d6fa70" strokeOpacity=".11"/></pattern>
+          <radialGradient id="spot"><stop stopColor="#394725"/><stop offset="1" stopColor="#181e16"/></radialGradient>
+        </defs>
+        <rect width="480" height="330" fill="url(#spot)"/>
+        <rect width="480" height="330" fill="url(#preview-grid)"/>
+        <path d="M24 60V28h32m368 0h32v32M24 270v32h32m368 0h32v-32" fill="none" stroke="#b1cd7c" strokeOpacity=".55"/>
+        <ellipse cx="253" cy="292" rx="153" ry="18" fill="#141913" opacity=".65"/>
+        <path d="M45 294h391" stroke="#778961" strokeOpacity=".7" strokeDasharray="5 6"/>
+        <path d="M215 202c-6 16 2 31 26 35l51 2 4 40-13 7v6h47l1-10-10-70c-2-10-10-14-23-14l-63-9Z" fill="#344231" stroke="#4d5c3f" strokeWidth="2"/>
+        <path d="M266 117l39 19 49-14 9 4-3 11-53 22c-5 2-10 2-16 0l-43-18Z" fill="#887e69"/>
+        <path d="M214 183c-9 11-13 29-3 39 8 9 24 11 36 10l65-5c-2 18-1 39-4 56l16 5c10-22 13-49 15-71 1-15-8-20-20-20l-79-7Z" fill="url(#kit)" stroke="#93a274" strokeOpacity=".5" strokeWidth="2"/>
+        <path d="M310 282c9 2 14 1 21 2l28 7 2 7h-52l-6-5Z" fill="#c2c6b0"/>
+        <path d="M285 76c-12-5-24 4-29 13l-13 18 18 14 15-19c8 1 16-2 18-8l2-11 7-4-6-9-2-12c-2-13-15-20-28-16-13 3-21 16-17 29 2 8 7 11 12 15" fill="url(#skin)"/>
+        <path d="M250 76c-7-8-5-27 2-33 14-14 39-8 43 7l-9 9-10-2-6 7-4 14-6-2-4 6Z" fill="#2a3024"/>
+        <path d="M257 93c12 4 16 17 10 32l-24 45-7 32-34-4c-5-9-3-21 2-31l19-46c8-18 19-30 34-28Z" fill="url(#kit)" stroke="#9fae80" strokeOpacity=".65" strokeWidth="2"/>
+        <path d="M257 108c7 5 11 10 18 16l24 17 41-15 11-11 13-3 9 6-5 9-19 11-47 21c-7 3-14 2-20-2l-37-24c-13-8-3-31 12-25Z" fill="url(#skin)"/>
+        <path d="M249 115 223 202 325 212 321 282m-72-167 49 35 50-17" fill="none" stroke="#d6fb68" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M292 209a33 33 0 0 0 31 36" fill="none" stroke="#d6fb68" strokeWidth="1.75"/>
+        <path d="M320 212h92" stroke="#d6fb68" strokeOpacity=".55" strokeDasharray="4 4"/>
+        {[[249,115],[223,202],[325,212],[321,282],[298,150],[348,133]].map(([x,y]) => <circle key={x} cx={x} cy={y} r="5" fill="#212b18" stroke="#d6fb68" strokeWidth="2"/>)}
+        <circle cx="325" cy="212" r="12" fill="none" stroke="#d6fb68" strokeOpacity=".45"/>
+      </svg>
+      <div className="pose-angle"><span>Knee angle</span><strong>92°</strong></div>
     </div>
-  );
-};
+    <div className="pose-card-bottom"><span><i /> Squat · bottom position</span><span>Side view</span></div>
+  </div>;
+}
+
+const features = [
+  [Camera, 'Set up your camera', 'Choose an exercise and follow the camera guide so the right joints stay in view.'],
+  [Gauge, 'Track each rep', 'See the estimated joint angle and count each rep when you hit the target and return to start.'],
+  [Volume2, 'Train with feedback', 'Follow short cues on screen or turn on voice coaching to keep your eyes off the screen.'],
+];
+
+export function Landing() {
+  return <div className="landing-wrap">
+    <section className="landing-hero">
+      <div className="landing-copy">
+        <div className="studio-kicker"><span /> THE WEBCAM WORKOUT COACH</div>
+        <h1>Train with<br/>better <em>form.</em></h1>
+        <p>Get live feedback on your reps and movement using the camera you already have.</p>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link to="/workout/setup" className="studio-button">Start a workout <ArrowUpRight size={19} /></Link>
+          <a href="#how-it-works" className="studio-button subtle">How it works <ArrowDown size={16} /></a>
+        </div>
+        <div className="hero-note"><Camera size={15}/> A camera and space to move are all you need.</div>
+      </div>
+      <PosePreview />
+    </section>
+    <section id="how-it-works" className="landing-steps">
+      <div className="landing-section-label"><span className="studio-kicker">THE WORKOUT FLOW</span><h2>From setup to last rep.</h2></div>
+      <div className="feature-grid">{features.map(([Icon, name, description], i) =>
+        <article key={name}><div className="feature-top"><Icon size={22} /><span>0{i + 1}</span></div><h3>{name}</h3><p>{description}</p></article>)}</div>
+    </section>
+    <footer className="landing-footer"><span>REFORM / TRAINING STUDIO</span><Link to="/workout/setup">Choose a movement <ArrowRight size={15} /></Link></footer>
+  </div>;
+}

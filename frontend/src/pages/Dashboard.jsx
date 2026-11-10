@@ -42,15 +42,15 @@ export const Dashboard = () => {
             {greeting}
           </h1>
           <p className="text-xs text-text-muted mt-1">
-            {user?.email ? `Signed in as ${user.email}` : 'Ready for your workout session.'}
+            {user?.email ? `Signed in as ${user.email}` : 'Ready to train.'}
           </p>
         </div>
 
         <Link
           to="/workout/setup"
-          className="inline-flex items-center gap-2.5 bg-accent hover:bg-accent-hover text-white font-medium text-xs px-6 py-3.5 rounded-xl transition-all shadow-md shadow-accent/15 tracking-wide uppercase font-mono"
+          className="inline-flex items-center gap-2.5 bg-accent hover:bg-accent-hover text-background font-medium text-xs px-6 py-3.5 rounded-xl transition-all shadow-md shadow-accent/15 tracking-wide uppercase font-mono"
         >
-          <Play className="w-3.5 h-3.5 fill-white" />
+          <Play className="w-3.5 h-3.5 fill-current" />
           Start Session
         </Link>
       </div>
@@ -94,7 +94,7 @@ export const Dashboard = () => {
           <div className="text-3xl font-bold font-mono-stat text-emerald-400">
             {data?.weekly?.avgScore ? `${data.weekly.avgScore}%` : '—'}
           </div>
-          <span className="text-[11px] text-text-muted mt-2">Form accuracy score</span>
+          <span className="text-[11px] text-text-muted mt-2">Camera form estimate</span>
         </div>
 
         <div className="bg-surface border border-border-subtle rounded-2xl p-5 flex flex-col justify-between">
@@ -121,7 +121,7 @@ export const Dashboard = () => {
           </p>
           <Link
             to="/workout/setup"
-            className="inline-flex items-center gap-2 bg-accent hover:bg-accent-hover text-white text-xs font-medium px-5 py-3 rounded-xl transition-colors uppercase font-mono tracking-wider"
+            className="inline-flex items-center gap-2 bg-accent hover:bg-accent-hover text-background text-xs font-medium px-5 py-3 rounded-xl transition-colors uppercase font-mono tracking-wider"
           >
             Start Your First Workout
           </Link>
@@ -146,25 +146,25 @@ export const Dashboard = () => {
                 <AreaChart data={data?.formScoreTrend || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="formScoreGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#8B1E3F" stopOpacity={0.35} />
-                      <stop offset="95%" stopColor="#8B1E3F" stopOpacity={0.0} />
+                      <stop offset="5%" stopColor="#d6fb68" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#d6fb68" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="date" stroke="#918B94" fontSize={11} tickLine={false} />
-                  <YAxis domain={[50, 100]} stroke="#918B94" fontSize={11} tickLine={false} />
+                  <XAxis dataKey="date" stroke="#b0b9a8" fontSize={11} tickLine={false} />
+                  <YAxis domain={[0, 100]} stroke="#b0b9a8" fontSize={11} tickLine={false} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: '#19171D',
-                      borderColor: '#25232B',
+                      backgroundColor: '#232a1f',
+                      borderColor: '#354031',
                       borderRadius: '12px',
                       fontSize: '12px',
-                      color: '#F3F0F2',
+                      color: '#f4f6ee',
                     }}
                   />
                   <Area
                     type="monotone"
                     dataKey="formScore"
-                    stroke="#8B1E3F"
+                    stroke="#d6fb68"
                     strokeWidth={2}
                     fillOpacity={1}
                     fill="url(#formScoreGrad)"
@@ -189,7 +189,7 @@ export const Dashboard = () => {
                   <Link
                     key={w._id}
                     to={`/history`}
-                    className="block bg-elevated hover:bg-[#201E26] border border-border-subtle rounded-xl p-3.5 transition-colors"
+                    className="block bg-elevated hover:bg-[#2d3828] border border-border-subtle rounded-xl p-3.5 transition-colors"
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm font-medium text-text-primary">{w.title}</span>
@@ -206,7 +206,7 @@ export const Dashboard = () => {
 
             <Link
               to="/history"
-              className="mt-6 w-full py-2.5 bg-elevated hover:bg-[#201E26] border border-border-subtle text-text-primary text-xs font-medium rounded-xl text-center block transition-colors"
+              className="mt-6 w-full py-2.5 bg-elevated hover:bg-[#2d3828] border border-border-subtle text-text-primary text-xs font-medium rounded-xl text-center block transition-colors"
             >
               View Full History
             </Link>

@@ -61,10 +61,10 @@ export const App = () => {
 
           {/* Protected routes */}
           <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-          <Route path="/workout/setup" element={<PrivateRoute><WorkoutSetup /></PrivateRoute>} />
-          <Route path="/workout/calibration" element={<PrivateRoute><CameraCalibration /></PrivateRoute>} />
-          <Route path="/workout/active" element={<PrivateRoute><Workout /></PrivateRoute>} />
-          <Route path="/workout/summary" element={<PrivateRoute><WorkoutSummary /></PrivateRoute>} />
+          <Route path="/workout/setup" element={<WorkoutSetup />} />
+          <Route path="/workout/calibration" element={<CameraCalibration />} />
+          <Route path="/workout/active" element={<Workout />} />
+          <Route path="/workout/summary" element={<WorkoutSummary />} />
           <Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
           <Route path="/progress" element={<PrivateRoute><Analytics /></PrivateRoute>} />
           <Route path="/analytics" element={<PrivateRoute><Analytics /></PrivateRoute>} />
