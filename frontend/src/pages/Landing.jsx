@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Activity, ArrowRight, ArrowUpRight, Gauge, ScanLine, Volume2 } from 'lucide-react';
+import { Activity, ArrowRight, ArrowUpRight, Gauge, ScanLine } from 'lucide-react';
 
 function PosePreview() {
   return <div className="pose-card">
@@ -45,7 +45,6 @@ function PosePreview() {
 const features = [
   [Activity, 'Pose Landmarks', 'Extracts 33 landmarks per frame to estimate joint angles.'],
   [Gauge, 'Multi-Phase State Machines', 'Counts a repetition when the movement reaches its range target and returns to the starting position.'],
-  [Volume2, 'Spoken Feedback Engine', 'Delivers optional voice cues during workouts.'],
 ];
 
 export function Landing() {
@@ -53,7 +52,7 @@ export function Landing() {
     <section className="landing-hero">
       <div className="landing-copy">
         <h1>Real-time form tracking through your webcam.</h1>
-        <p>Reform estimates joint angles, detects movement phases, counts repetitions, and provides live audio coaching.</p>
+        <p>Reform estimates joint angles, detects movement phases, and counts repetitions.</p>
         <div className="flex flex-wrap items-center gap-3">
           <Link to="/workout/setup" className="studio-button">Start Workout <ArrowUpRight size={19} /></Link>
           <Link to="/dashboard" className="studio-button subtle">Open Dashboard <ArrowRight size={16} /></Link>
