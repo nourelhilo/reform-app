@@ -6,15 +6,17 @@ import { Play, Activity, Award, Clock, ArrowRight, TrendingUp, Calendar, AlertCi
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
 
 export const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (authLoading) return;
     const fetchDashboard = async () => {
       try {
         setLoading(true);
+        setError(null);
         const res = await api.getDashboardMetrics(user);
         setData(res);
       } catch (err) {
@@ -26,7 +28,7 @@ export const Dashboard = () => {
     };
 
     fetchDashboard();
-  }, [user]);
+  }, [authLoading, user]);
 
   // Greeting
   const hour = new Date().getHours();
@@ -35,28 +37,28 @@ export const Dashboard = () => {
   return (
     <div className="max-w-5xl mx-auto px-6 py-10 space-y-10">
       {/* Top Header & Primary Action */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-6 border-b border-border-subtle">
+      <div className="account-heading flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-6 border-b border-border-subtle">
         <div>
           <span className="text-xs font-mono uppercase tracking-widest text-text-muted font-medium">Overview</span>
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-text-primary mt-1">
             {greeting}
           </h1>
           <p className="text-xs text-text-muted mt-1">
-            {user?.email ? `Signed in as ${user.email}` : 'Ready for your workout session.'}
+            {user?.email ? `Signed in as ${user.email}` : 'Ready to train.'}
           </p>
         </div>
 
         <Link
           to="/workout/setup"
-          className="inline-flex items-center gap-2.5 bg-accent hover:bg-accent-hover text-white font-medium text-xs px-6 py-3.5 rounded-xl transition-all shadow-md shadow-accent/15 tracking-wide uppercase font-mono"
+          className="inline-flex items-center gap-2.5 bg-accent hover:bg-accent-hover text-background font-medium text-xs px-6 py-3.5 rounded-xl transition-all shadow-md shadow-accent/15 tracking-wide uppercase font-mono"
         >
-          <Play className="w-3.5 h-3.5 fill-white" />
+          <Play className="w-3.5 h-3.5 fill-current" />
           Start Session
         </Link>
       </div>
 
       {error && (
-        <div className="p-4 rounded-xl bg-status-warning/10 border border-status-warning/20 text-amber-200 text-xs flex items-center gap-3">
+        <div className="p-4 rounded-xl bg-status-warning/10 border border-status-warning/20 text-amber-900 text-xs flex items-center gap-3">
           <AlertCircle className="w-4 h-4 text-status-warning flex-shrink-0" />
           <span>Status: {error}</span>
         </div>
@@ -89,12 +91,12 @@ export const Dashboard = () => {
         <div className="bg-surface border border-border-subtle rounded-2xl p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs uppercase tracking-wider text-text-muted font-medium">Average Form</span>
-            <Award className="w-4 h-4 text-emerald-400" />
+            <Award className="w-4 h-4 text-emerald-800" />
           </div>
-          <div className="text-3xl font-bold font-mono-stat text-emerald-400">
+          <div className="text-3xl font-bold font-mono-stat text-emerald-800">
             {data?.weekly?.avgScore ? `${data.weekly.avgScore}%` : '—'}
           </div>
-          <span className="text-[11px] text-text-muted mt-2">Form accuracy score</span>
+          <span className="text-[11px] text-text-muted mt-2">Camera form estimate</span>
         </div>
 
         <div className="bg-surface border border-border-subtle rounded-2xl p-5 flex flex-col justify-between">
@@ -121,7 +123,7 @@ export const Dashboard = () => {
           </p>
           <Link
             to="/workout/setup"
-            className="inline-flex items-center gap-2 bg-accent hover:bg-accent-hover text-white text-xs font-medium px-5 py-3 rounded-xl transition-colors uppercase font-mono tracking-wider"
+            className="inline-flex items-center gap-2 bg-accent hover:bg-accent-hover text-background text-xs font-medium px-5 py-3 rounded-xl transition-colors uppercase font-mono tracking-wider"
           >
             Start Your First Workout
           </Link>
@@ -136,7 +138,7 @@ export const Dashboard = () => {
                 <h3 className="text-base font-semibold text-text-primary mt-0.5">Form Score Trend</h3>
               </div>
               <div className="flex items-center gap-1.5 text-xs text-text-muted">
-                <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                <TrendingUp className="w-3.5 h-3.5 text-emerald-800" />
                 <span>Recent sessions</span>
               </div>
             </div>
@@ -146,25 +148,25 @@ export const Dashboard = () => {
                 <AreaChart data={data?.formScoreTrend || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="formScoreGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#8B1E3F" stopOpacity={0.35} />
-                      <stop offset="95%" stopColor="#8B1E3F" stopOpacity={0.0} />
+                      <stop offset="5%" stopColor="#663da6" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#663da6" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="date" stroke="#918B94" fontSize={11} tickLine={false} />
-                  <YAxis domain={[50, 100]} stroke="#918B94" fontSize={11} tickLine={false} />
+                  <XAxis dataKey="date" stroke="#63596a" fontSize={11} tickLine={false} />
+                  <YAxis domain={[0, 100]} stroke="#63596a" fontSize={11} tickLine={false} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: '#19171D',
-                      borderColor: '#25232B',
+                      backgroundColor: '#fffaf2',
+                      borderColor: '#ded3c3',
                       borderRadius: '12px',
                       fontSize: '12px',
-                      color: '#F3F0F2',
+                      color: 'var(--text)',
                     }}
                   />
                   <Area
                     type="monotone"
                     dataKey="formScore"
-                    stroke="#8B1E3F"
+                    stroke="#663da6"
                     strokeWidth={2}
                     fillOpacity={1}
                     fill="url(#formScoreGrad)"
@@ -189,11 +191,11 @@ export const Dashboard = () => {
                   <Link
                     key={w._id}
                     to={`/history`}
-                    className="block bg-elevated hover:bg-[#201E26] border border-border-subtle rounded-xl p-3.5 transition-colors"
+                    className="block bg-elevated hover:bg-[#f1e5fa] border border-border-subtle rounded-xl p-3.5 transition-colors"
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm font-medium text-text-primary">{w.title}</span>
-                      <span className="text-xs font-mono font-semibold text-emerald-400">{w.overallFormScore}%</span>
+                      <span className="text-xs font-mono font-semibold text-emerald-800">{w.overallFormScore}%</span>
                     </div>
                     <div className="flex items-center justify-between text-xs text-text-muted">
                       <span>{w.totalReps} reps • {Math.round((w.durationSeconds || 0) / 60)} min</span>
@@ -206,7 +208,7 @@ export const Dashboard = () => {
 
             <Link
               to="/history"
-              className="mt-6 w-full py-2.5 bg-elevated hover:bg-[#201E26] border border-border-subtle text-text-primary text-xs font-medium rounded-xl text-center block transition-colors"
+              className="mt-6 w-full py-2.5 bg-elevated hover:bg-[#f1e5fa] border border-border-subtle text-text-primary text-xs font-medium rounded-xl text-center block transition-colors"
             >
               View Full History
             </Link>

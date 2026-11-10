@@ -7,21 +7,21 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#0B0A0D',
-        surface: '#121116',
-        elevated: '#19171D',
-        'border-subtle': '#25232B',
-        'text-primary': '#F3F0F2',
-        'text-muted': '#918B94',
+        background: '#f8f2e7',
+        surface: '#fffaf2',
+        elevated: '#f0e8db',
+        'border-subtle': '#ded3c3',
+        'text-primary': 'var(--text)',
+        'text-muted': '#63596a',
         accent: {
-          DEFAULT: '#8B1E3F',
-          hover: '#A32349',
-          dim: '#4A0E17',
+          DEFAULT: '#663da6',
+          hover: '#523180',
+          dim: '#dac4f5',
         },
         purple: {
-          dark: '#331436',
-          deep: '#4A154B',
-          glow: '#682069',
+          dark: '#412d5d',
+          deep: '#663da6',
+          glow: '#ad88e4',
         },
         status: {
           success: '#2A7B4C',

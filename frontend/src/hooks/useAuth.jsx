@@ -27,28 +27,30 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
+    let active = true;
+    let generation = 0;
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+      const current = ++generation;
       setUser(fbUser);
+      setMongoUser(null);
+      setLoading(false);
       if (fbUser) {
         try {
           // Sync with MongoDB backend
-          const syncRes = await api.syncUser({
+          const syncRes = await api.syncUser(fbUser, {
             name: fbUser.displayName || '',
             profileImage: fbUser.photoURL || '',
-          }, fbUser);
-          if (syncRes?.user) {
+          });
+          if (active && current === generation && syncRes?.user) {
             setMongoUser(syncRes.user);
           }
         } catch (err) {
           console.warn('[Auth Sync Note] Could not connect to backend/MongoDB:', err.message);
         }
-      } else {
-        setMongoUser(null);
       }
-      setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => { active = false; unsubscribe(); };
   }, []);
 
   const loginWithEmail = async (email, password) => {
@@ -80,7 +82,7 @@ export const AuthProvider = ({ children }) => {
           console.warn('Could not send verification email:', e);
         }
         // Sync to MongoDB
-        await api.syncUser({ name }, cred.user).catch(() => {});
+        await api.syncUser(cred.user, { name }).catch(() => {});
       }
       return cred.user;
     } catch (err) {
@@ -122,6 +124,11 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const savePreferences = async preferences => {
+    const response = await api.updateUserProfile(user, { preferences });
+    if (response?.user) setMongoUser(response.user);
+  };
+
   const value = {
     user,
     mongoUser,
@@ -132,6 +139,7 @@ export const AuthProvider = ({ children }) => {
     registerWithEmail,
     loginWithGoogle,
     resetPassword,
+    savePreferences,
     logout,
   };
 

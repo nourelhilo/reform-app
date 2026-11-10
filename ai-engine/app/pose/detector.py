@@ -1,55 +1,40 @@
-import cv2
+from pathlib import Path
 import time
-import numpy as np
+
+import cv2
 import mediapipe as mp
-from typing import Dict, Any, List, Optional, Tuple
+
+
+MODEL_PATH = Path(__file__).resolve().parents[1] / "models" / "saved" / "pose_landmarker.task"
+
 
 class PoseDetector:
-    def __init__(
-        self,
-        static_image_mode: bool = False,
-        model_complexity: int = 1,
-        smooth_landmarks: bool = True,
-        min_detection_confidence: float = 0.5,
-        min_tracking_confidence: float = 0.5,
-    ):
-        self.mp_pose = mp.solutions.pose
-        self.pose = self.mp_pose.Pose(
-            static_image_mode=static_image_mode,
-            model_complexity=model_complexity,
-            smooth_landmarks=smooth_landmarks,
-            min_detection_confidence=min_detection_confidence,
-            min_tracking_confidence=min_tracking_confidence,
+    def __init__(self):
+        options = mp.tasks.vision.PoseLandmarkerOptions(
+            base_options=mp.tasks.BaseOptions(model_asset_path=str(MODEL_PATH)),
+            running_mode=mp.tasks.vision.RunningMode.VIDEO,
+            num_poses=1,
+            min_pose_detection_confidence=0.55,
+            min_pose_presence_confidence=0.55,
+            min_tracking_confidence=0.55,
         )
-        self.mp_drawing = mp.solutions.drawing_utils
-        self.mp_drawing_styles = mp.solutions.drawing_styles
+        self.pose = mp.tasks.vision.PoseLandmarker.create_from_options(options)
+        self.timestamp = -1
 
-    def process_frame(self, frame: np.ndarray) -> Tuple[Optional[List[Dict[str, float]]], float]:
-        """
-        Process BGR OpenCV frame and extract 33 normalized landmarks.
-        Returns: (landmarks_list, latency_ms)
-        """
-        t0 = time.perf_counter()
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        rgb_frame.flags.writeable = False
+    def process_frame(self, frame):
+        start = time.perf_counter()
+        image = mp.Image(image_format=mp.ImageFormat.SRGB, data=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+        self.timestamp = max(self.timestamp + 1, int(time.monotonic() * 1000))
+        result = self.pose.detect_for_video(image, self.timestamp)
+        latency_ms = (time.perf_counter() - start) * 1000
 
-        results = self.pose.process(rgb_frame)
-        latency_ms = (time.perf_counter() - t0) * 1000.0
-
-        if not results.pose_landmarks:
+        if not result.pose_landmarks:
             return None, latency_ms
-
-        landmarks = []
-        for lm in results.pose_landmarks.landmark:
-            landmarks.append({
-                "x": float(lm.x),
-                "y": float(lm.y),
-                "z": float(lm.z),
-                "visibility": float(lm.visibility),
-            })
-
-        return landmarks, latency_ms
+        return [
+            {"x": float(lm.x), "y": float(lm.y), "z": float(lm.z),
+             "visibility": min(float(lm.visibility), float(lm.presence))}
+            for lm in result.pose_landmarks[0]
+        ], latency_ms
 
     def close(self):
-        if self.pose:
-            self.pose.close()
+        self.pose.close()

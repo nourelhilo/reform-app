@@ -1,57 +1,43 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ExerciseCard } from '../components/ExerciseCard';
-import { Play, Settings } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Activity, ArrowLeft, ArrowRight, Check, Dumbbell, MoveVertical, PersonStanding, Zap } from 'lucide-react';
+import { exercises, getExerciseList } from '../services/exercises';
 
-const EXERCISES = ['squat', 'pushup', 'curl', 'lunge', 'jumping_jack'];
+const icons = { squat: MoveVertical, pushup: Activity, curl: Dumbbell, lunge: PersonStanding, jumping_jack: Zap };
 
-export const WorkoutSetup = () => {
+export function WorkoutSetup() {
   const navigate = useNavigate();
-  const [selected, setSelected] = useState(['squat']);
+  const location = useLocation();
+  const [selected, setSelected] = useState(() => getExerciseList(location.state?.exercises));
 
-  const toggleExercise = (id) => {
-    setSelected(prev =>
-      prev.includes(id) ? prev.filter(e => e !== id) : [...prev, id]
-    );
-  };
-
-  const handleStart = () => {
-    if (selected.length === 0) return;
-    navigate('/workout/calibration', { state: { exercises: selected } });
-  };
-
-  return (
-    <div className="max-w-5xl mx-auto px-6 py-10">
-      <div className="mb-8 pb-6 border-b border-border-subtle">
-        <span className="text-xs font-mono uppercase tracking-widest text-text-muted font-medium">New Session</span>
-        <h1 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight mt-1">Choose Exercises</h1>
-        <p className="text-xs text-text-muted mt-1.5">Select the movements you would like to include in this session.</p>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-        {EXERCISES.map(ex => (
-          <ExerciseCard
-            key={ex}
-            id={ex}
-            selected={selected.includes(ex)}
-            onSelect={toggleExercise}
-          />
-        ))}
-      </div>
-
-      <div className="flex items-center justify-between border-t border-border-subtle pt-6">
-        <span className="text-xs text-text-muted font-mono">
-          {selected.length} exercise{selected.length !== 1 ? 's' : ''} selected
-        </span>
-        <button
-          onClick={handleStart}
-          disabled={selected.length === 0}
-          className="inline-flex items-center gap-2.5 bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium text-xs px-6 py-3.5 rounded-xl transition-all shadow-md shadow-accent/15 tracking-wide uppercase font-mono"
-        >
-          <Play className="w-3.5 h-3.5 fill-white" />
-          Continue to Camera Check
-        </button>
-      </div>
+  return <div className="studio-wrap">
+    <Link to="/" className="studio-back"><ArrowLeft size={16} /> Home</Link>
+    <div className="studio-heading">
+      <div className="studio-kicker">New Session</div>
+      <h1>Choose Exercises</h1>
+      <p>Select the movements you would like to include in this session.</p>
     </div>
-  );
-};
+    <div className="studio-layout">
+      <div className="move-grid">{Object.entries(exercises).map(([id, exercise]) => {
+        const index = selected.indexOf(id);
+        const Icon = icons[id];
+        return <button type="button" key={id} className={'move-card' + (index >= 0 ? ' selected' : '')}
+          aria-pressed={index >= 0} onClick={() => setSelected(current =>
+            current.includes(id) ? current.filter(value => value !== id) : [...current, id])}>
+          <span className="move-card-top"><Icon size={23} /><span className="move-check">{index >= 0 && <Check size={15}/>}</span></span>
+          <span className="move-name">{exercise.name}</span>
+          <span className="move-meta">{exercise.area} <span>·</span> {exercise.view}</span>
+        </button>;
+      })}</div>
+      <aside className="studio-panel setup-plan">
+        <h2>{selected.length} {selected.length === 1 ? 'exercise' : 'exercises'} selected</h2>
+        {selected.length ? <ol>{selected.map((id, i) => <li key={id}><span>{String(i+1).padStart(2, '0')}</span>{exercises[id].name}</li>)}</ol>
+          : <p className="text-text-muted text-sm">Select an exercise to continue.</p>}
+        <button className="studio-button w-full" disabled={!selected.length}
+          onClick={() => navigate('/workout/calibration', { state: { exercises: selected } })}>
+          Continue to Camera Check <ArrowRight size={18} />
+        </button>
+      </aside>
+    </div>
+  </div>;
+}

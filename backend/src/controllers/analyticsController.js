@@ -5,10 +5,7 @@ const Workout = require('../models/Workout');
 // @access  Private
 const getDashboardMetrics = async (req, res, next) => {
   try {
-    const workouts = await Workout.find({ userId: req.user._id })
-      .sort({ createdAt: -1 })
-      .limit(30)
-      .lean();
+    const workouts = await Workout.list(req.user._id, { limit: 30 });
 
     if (workouts.length === 0) {
       return res.json({
@@ -79,9 +76,7 @@ const getDashboardMetrics = async (req, res, next) => {
 // @access  Private
 const getProgressAnalytics = async (req, res, next) => {
   try {
-    const workouts = await Workout.find({ userId: req.user._id })
-      .sort({ createdAt: 1 })
-      .lean();
+    const workouts = await Workout.list(req.user._id, { chronological: true });
 
     if (workouts.length === 0) {
       return res.json({

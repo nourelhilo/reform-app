@@ -8,7 +8,7 @@ const EXERCISE_LABELS = {
   lunge: 'Lunge', jumping_jack: 'Jumping Jack',
 };
 
-const METRIC_COLORS = ['#8B1E3F', '#22c55e', '#f59e0b', '#3b82f6', '#ef4444'];
+const METRIC_COLORS = ['#663da6', '#22c55e', '#f59e0b', '#3b82f6', '#ef4444'];
 
 const sparklinePath = (points, width = 100, height = 40) => {
   if (!points || points.length < 2) return '';
@@ -21,15 +21,15 @@ const sparklinePath = (points, width = 100, height = 40) => {
 };
 
 export const Analytics = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [dashboard, setDashboard] = useState(null);
   const [progress, setProgress] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (authLoading) return;
     const load = async () => {
-      if (!user) { setLoading(false); return; }
       setLoading(true);
       setError(null);
       try {
@@ -46,7 +46,7 @@ export const Analytics = () => {
       }
     };
     load();
-  }, [user]);
+  }, [authLoading, user]);
 
   if (loading) {
     return (
@@ -60,7 +60,7 @@ export const Analytics = () => {
   if (error) {
     return (
       <div className="max-w-4xl mx-auto px-6 py-10">
-        <div className="flex items-center gap-3 text-xs text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
+        <div className="flex items-center gap-3 text-xs text-amber-800 bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
           <Info className="w-4 h-4 flex-shrink-0" />
           {error}
         </div>
@@ -75,7 +75,7 @@ export const Analytics = () => {
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-10">
-      <div className="mb-8 pb-6 border-b border-border-subtle">
+      <div className="account-heading mb-8 pb-6 border-b border-border-subtle">
         <span className="text-xs font-mono uppercase tracking-widest text-text-muted font-medium">Trends</span>
         <h1 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight mt-1">Progress & Analytics</h1>
         <p className="text-xs text-text-muted mt-1.5">Track how your movement quality, volume, and consistency develop over time.</p>
@@ -117,11 +117,11 @@ export const Analytics = () => {
                   <svg viewBox="0 0 100 40" className="w-full h-24" preserveAspectRatio="none">
                     <defs>
                       <linearGradient id="analFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#8B1E3F" stopOpacity="0.3" />
-                        <stop offset="100%" stopColor="#8B1E3F" stopOpacity="0" />
+                        <stop offset="0%" stopColor="#663da6" stopOpacity="0.3" />
+                        <stop offset="100%" stopColor="#663da6" stopOpacity="0" />
                       </linearGradient>
                     </defs>
-                    <path d={sparklinePath(formTrend.map(d => d.formScore))} fill="none" stroke="#8B1E3F" strokeWidth="2" strokeLinecap="round" />
+                    <path d={sparklinePath(formTrend.map(d => d.formScore))} fill="none" stroke="#663da6" strokeWidth="2" strokeLinecap="round" />
                   </svg>
                   <div className="mt-2 flex justify-between text-[10px] text-text-muted font-mono">
                     <span>{formTrend[0]?.date || '—'}</span>
@@ -178,7 +178,7 @@ export const Analytics = () => {
                       </div>
                       <span className="text-xs font-mono text-text-muted w-10 text-right">{ex.averageFormScore}%</span>
                       {ex.improvementPercent !== null && (
-                        <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${ex.improvementPercent >= 0 ? 'text-emerald-400 bg-emerald-500/10' : 'text-rose-400 bg-rose-500/10'}`}>
+                        <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${ex.improvementPercent >= 0 ? 'text-emerald-800 bg-emerald-500/10' : 'text-rose-800 bg-rose-500/10'}`}>
                           {ex.improvementPercent >= 0 ? '+' : ''}{ex.improvementPercent}%
                         </span>
                       )}

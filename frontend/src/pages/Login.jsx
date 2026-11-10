@@ -56,7 +56,7 @@ export const Login = () => {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 rounded-xl bg-status-error/10 border border-status-error/20 flex items-start gap-3 text-rose-300 text-xs">
+          <div className="mb-6 p-4 rounded-xl bg-status-error/10 border border-status-error/20 flex items-start gap-3 text-rose-800 text-xs">
             <AlertCircle className="w-4 h-4 text-status-error flex-shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
@@ -79,7 +79,7 @@ export const Login = () => {
           type="button"
           onClick={handleGoogleSignIn}
           disabled={loading}
-          className="w-full bg-elevated hover:bg-[#201E26] border border-border-subtle text-text-primary font-medium text-xs py-3 px-4 rounded-xl flex items-center justify-center gap-3 transition-colors mb-6 disabled:opacity-50"
+          className="w-full bg-elevated hover:bg-[#f1e5fa] border border-border-subtle text-text-primary font-medium text-xs py-3 px-4 rounded-xl flex items-center justify-center gap-3 transition-colors mb-6 disabled:opacity-50"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path
@@ -159,7 +159,7 @@ export const Login = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-accent hover:bg-accent-hover text-white font-semibold text-xs py-3 rounded-xl transition-colors uppercase tracking-widest font-mono flex items-center justify-center gap-2 mt-6 disabled:opacity-50"
+            className="w-full bg-accent hover:bg-accent-hover text-background font-semibold text-xs py-3 rounded-xl transition-colors uppercase tracking-widest font-mono flex items-center justify-center gap-2 mt-6 disabled:opacity-50"
           >
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
             Sign In

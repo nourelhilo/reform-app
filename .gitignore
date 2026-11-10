@@ -4,6 +4,7 @@ node_modules/
 .pnp.js
 venv/
 .venv/
+.venv-test/
 env/
 __pycache__/
 *.py[cod]

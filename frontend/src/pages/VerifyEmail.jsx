@@ -20,7 +20,7 @@ export const VerifyEmail = () => {
 
         <Link
           to="/dashboard"
-          className="inline-flex items-center justify-center gap-2 w-full bg-accent hover:bg-accent-hover text-white font-semibold text-xs py-3 rounded-xl transition-colors uppercase tracking-widest font-mono mb-4"
+          className="inline-flex items-center justify-center gap-2 w-full bg-accent hover:bg-accent-hover text-background font-semibold text-xs py-3 rounded-xl transition-colors uppercase tracking-widest font-mono mb-4"
         >
           Go to Dashboard
           <ArrowRight className="w-4 h-4" />

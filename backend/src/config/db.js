@@ -1,37 +1,51 @@
-const mongoose = require('mongoose');
+const { Pool } = require('pg');
+const { resolve } = require('node:path');
 
-let isConnected = false;
+let pool;
 
-const connectDB = async () => {
-  const uri = process.env.MONGODB_URI;
-  const dbName = process.env.DATABASE_NAME || 'ai_fitness_coach';
-
-  if (!uri) {
-    console.warn('\x1b[33m%s\x1b[0m', '⚠️  MongoDB Warning: MONGODB_URI is not set in environment variables.');
-    console.warn('\x1b[33m%s\x1b[0m', '   Please provide a valid connection string in backend/.env or root .env.');
-    return false;
-  }
-
-  try {
-    const conn = await mongoose.connect(uri, {
-      dbName: dbName,
-      serverSelectionTimeoutMS: 5000,
+function query(text, values) {
+  if (!pool) {
+    const connectionString = process.env.SUPABASE_DATABASE_URL;
+    if (!connectionString) {
+      throw Object.assign(new Error('Account storage is unavailable.'), { status: 503 });
+    }
+    const url = new URL(connectionString);
+    if (process.env.SUPABASE_DATABASE_PASSWORD) {
+      url.password = encodeURIComponent(process.env.SUPABASE_DATABASE_PASSWORD);
+    }
+    if (url.hostname.endsWith('.pooler.supabase.com') || url.hostname.endsWith('.supabase.co')) {
+      if (!url.searchParams.has('sslmode')) url.searchParams.set('sslmode', 'verify-full');
+      if (!url.searchParams.has('sslrootcert')) {
+        url.searchParams.set('sslrootcert', resolve(__dirname, '../../certs/supabase-root.crt'));
+      }
+    }
+    pool = new Pool({
+      connectionString: url.href,
+      max: process.env.VERCEL ? 1 : 5,
+      connectionTimeoutMillis: 5000,
     });
-    isConnected = true;
-    console.log('\x1b[32m%s\x1b[0m', `✓ MongoDB Connected: ${conn.connection.host}/${dbName}`);
-    return true;
-  } catch (error) {
-    isConnected = false;
-    console.error('\x1b[31m%s\x1b[0m', `❌ MongoDB Connection Failed: ${error.message}`);
-    return false;
+    pool.on('error', error => console.error('PostgreSQL pool error:', error.code || error.name));
   }
-};
+  return pool.query(text, values);
+}
 
-const getDBStatus = () => ({
-  connected: isConnected && mongoose.connection.readyState === 1,
-  readyState: mongoose.connection.readyState,
-  host: mongoose.connection.host || null,
-  name: mongoose.connection.name || null,
-});
+async function getDBStatus() {
+  const configured = Boolean(process.env.SUPABASE_DATABASE_URL);
+  if (!configured) return { configured, connected: false };
+  try {
+    await module.exports.query(
+      'SELECT 1 FROM reform_private.users, reform_private.workouts LIMIT 0'
+    );
+    return { configured, connected: true };
+  } catch {
+    return { configured, connected: false };
+  }
+}
 
-module.exports = { connectDB, getDBStatus };
+async function closeDB() {
+  const current = pool;
+  pool = undefined;
+  await current?.end();
+}
+
+module.exports = { query, getDBStatus, closeDB };

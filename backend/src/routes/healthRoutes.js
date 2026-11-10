@@ -3,19 +3,15 @@ const router = express.Router();
 const { getDBStatus } = require('../config/db');
 const { getFirebaseStatus } = require('../config/firebase');
 
-router.get('/health', (req, res) => {
-  const dbStatus = getDBStatus();
+router.get('/health', async (req, res) => {
+  const dbStatus = await getDBStatus();
   const fbStatus = getFirebaseStatus();
 
   res.json({
     status: 'online',
     timestamp: new Date().toISOString(),
     services: {
-      mongodb: {
-        connected: dbStatus.connected,
-        readyState: dbStatus.readyState,
-        name: dbStatus.name,
-      },
+      supabase: dbStatus,
       firebase: {
         configured: fbStatus.configured,
         projectId: fbStatus.projectId,

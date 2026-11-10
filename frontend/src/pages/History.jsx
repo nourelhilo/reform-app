@@ -22,7 +22,7 @@ const EXERCISE_LABELS = {
 };
 
 export const History = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [workouts, setWorkouts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -31,8 +31,8 @@ export const History = () => {
   const LIMIT = 10;
 
   useEffect(() => {
+    if (authLoading) return;
     const fetchHistory = async () => {
-      if (!user) { setLoading(false); return; }
       setLoading(true);
       setError(null);
       try {
@@ -46,11 +46,11 @@ export const History = () => {
       }
     };
     fetchHistory();
-  }, [user, page]);
+  }, [authLoading, user, page]);
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-10">
-      <div className="mb-8 pb-6 border-b border-border-subtle">
+      <div className="account-heading mb-8 pb-6 border-b border-border-subtle">
         <span className="text-xs font-mono uppercase tracking-widest text-text-muted font-medium">Activity</span>
         <h1 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight mt-1">Workout History</h1>
         <p className="text-xs text-text-muted mt-1.5">A complete log of your completed sessions, rep totals, and form scores.</p>
@@ -64,7 +64,7 @@ export const History = () => {
       )}
 
       {error && (
-        <div className="flex items-center gap-3 text-xs text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
+        <div className="flex items-center gap-3 text-xs text-amber-800 bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
           <Info className="w-4 h-4 flex-shrink-0" />
           {error}
         </div>
@@ -80,7 +80,7 @@ export const History = () => {
 
       <div className="space-y-4">
         {workouts.map((w) => {
-          const scoreColor = w.overallFormScore >= 75 ? 'text-emerald-400' : w.overallFormScore >= 50 ? 'text-amber-400' : 'text-rose-400';
+          const scoreColor = w.overallFormScore >= 75 ? 'text-emerald-800' : w.overallFormScore >= 50 ? 'text-amber-800' : 'text-rose-800';
           return (
             <div key={w._id} className="bg-surface border border-border-subtle rounded-2xl p-6 hover:border-text-muted/30 transition-colors">
               <div className="flex items-start justify-between mb-4">

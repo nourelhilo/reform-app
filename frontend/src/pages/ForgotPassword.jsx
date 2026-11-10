@@ -38,7 +38,7 @@ export const ForgotPassword = () => {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 rounded-xl bg-status-error/10 border border-status-error/20 flex items-start gap-3 text-rose-300 text-xs">
+          <div className="mb-6 p-4 rounded-xl bg-status-error/10 border border-status-error/20 flex items-start gap-3 text-rose-800 text-xs">
             <AlertCircle className="w-4 h-4 text-status-error flex-shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
@@ -78,7 +78,7 @@ export const ForgotPassword = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-accent hover:bg-accent-hover text-white font-semibold text-xs py-3 rounded-xl transition-colors uppercase tracking-widest font-mono flex items-center justify-center gap-2 mt-6 disabled:opacity-50"
+              className="w-full bg-accent hover:bg-accent-hover text-background font-semibold text-xs py-3 rounded-xl transition-colors uppercase tracking-widest font-mono flex items-center justify-center gap-2 mt-6 disabled:opacity-50"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               Send Reset Link

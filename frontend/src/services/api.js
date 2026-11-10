@@ -1,10 +1,13 @@
 /**
  * api.js — Backend REST API client
- * Connects to the Node/Express backend at VITE_API_URL (default: http://localhost:5000/api)
+ * Connects to the same-origin API on HTTPS or the local backend during development.
  * All secure endpoints require a verified Firebase ID token.
  */
 
-const rawBase = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { guestWorkouts } from './guestWorkouts';
+
+const defaultApi = window.location.protocol === 'https:' ? '/api' : 'http://localhost:5000/api';
+const rawBase = import.meta.env.VITE_API_URL || defaultApi;
 // Clean base URL to remove trailing slash or duplicate /api
 const BASE_URL = rawBase.replace(/\/+$/, '').replace(/\/api$/, '');
 
@@ -24,7 +27,7 @@ const request = async (method, path, user = null, body = null) => {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const opts = { method, headers };
+  const opts = { method, headers, signal: AbortSignal.timeout(10000) };
   if (body) opts.body = JSON.stringify(body);
 
   const res = await fetch(fullUrl, opts);
@@ -46,11 +49,11 @@ export const api = {
 
   // --- Auth / User ---
 
-  /** Sync Firebase user to MongoDB on signup or login */
+  /** Sync Firebase user to the account database on signup or login */
   syncUser: (user, extraData = {}) =>
     request('POST', '/api/users/sync', user, extraData),
 
-  /** Get current user profile from MongoDB */
+  /** Get the current account profile */
   getUserProfile: (user) =>
     request('GET', '/api/users/profile', user),
 
@@ -61,12 +64,12 @@ export const api = {
   // --- Workouts ---
 
   /** Save a completed workout session */
-  saveWorkout: (workoutPayload, user) =>
-    request('POST', '/api/workouts', user, workoutPayload),
+  saveWorkout: async (workoutPayload, user) =>
+    user ? request('POST', '/api/workouts', user, workoutPayload) : guestWorkouts.save(workoutPayload),
 
   /** Get paginated workout history */
-  getWorkouts: (user, { page = 1, limit = 10 } = {}) =>
-    request('GET', `/api/workouts?page=${page}&limit=${limit}`, user),
+  getWorkouts: async (user, { page = 1, limit = 10 } = {}) =>
+    user ? request('GET', `/api/workouts?page=${page}&limit=${limit}`, user) : guestWorkouts.history(page, limit),
 
   /** Get a single workout by ID */
   getWorkout: (user, workoutId) =>
@@ -79,12 +82,12 @@ export const api = {
   // --- Analytics ---
 
   /** Get dashboard overview & weekly trends */
-  getDashboardMetrics: (user) =>
-    request('GET', '/api/analytics/dashboard', user),
+  getDashboardMetrics: async (user) =>
+    user ? request('GET', '/api/analytics/dashboard', user) : guestWorkouts.dashboard(),
 
   /** Get exercise-specific progress & score history */
-  getProgressAnalytics: (user) =>
-    request('GET', '/api/analytics/progress', user),
+  getProgressAnalytics: async (user) =>
+    user ? request('GET', '/api/analytics/progress', user) : guestWorkouts.progress(),
 
   /** Analytics aliases */
   getAnalyticsSummary: (user) =>
