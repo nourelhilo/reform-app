@@ -16,6 +16,9 @@ app = FastAPI(title="Reform pose tracking", version="1.1.0")
 origins = {url.strip() for url in os.getenv(
     "AI_CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
 ).split(",") if url.strip()}
+for key in ("VERCEL_URL", "VERCEL_BRANCH_URL", "VERCEL_PROJECT_PRODUCTION_URL"):
+    if hostname := os.getenv(key):
+        origins.add(f"https://{hostname}")
 
 
 @app.get("/health")

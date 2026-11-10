@@ -1,0 +1,30 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "frontend": {
+      "root": "frontend/",
+      "framework": "vite",
+      "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+    },
+    "pose": {
+      "root": "ai-engine/",
+      "runtime": "container",
+      "entrypoint": "Dockerfile.vercel"
+    },
+    "accounts": {
+      "root": "backend/",
+      "framework": "express",
+      "entrypoint": "src/app.js",
+      "functions": {
+        "src/app.js": { "includeFiles": "certs/supabase-root.crt" }
+      }
+    }
+  },
+  "rewrites": [
+    { "source": "/ws/:path*", "destination": { "service": "pose" } },
+    { "source": "/health", "destination": { "service": "pose" } },
+    { "source": "/api/evaluation", "destination": { "service": "pose" } },
+    { "source": "/api/:path*", "destination": { "service": "accounts" } },
+    { "source": "/(.*)", "destination": { "service": "frontend" } }
+  ]
+}

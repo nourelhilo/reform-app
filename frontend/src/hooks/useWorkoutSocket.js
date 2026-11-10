@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-const AI_WS_URL = import.meta.env.VITE_AI_ENGINE_WS_URL || 'ws://localhost:8000/ws/workout';
+const defaultSocket = window.location.protocol === 'https:'
+  ? `wss://${window.location.host}/ws/workout`
+  : 'ws://localhost:8000/ws/workout';
+const AI_WS_URL = import.meta.env.VITE_AI_ENGINE_WS_URL || defaultSocket;
 const waiting = {
   phase: 'idle', confidence: 0, activeJoints: [], landmarks: null, exerciseMetrics: {},
   visibility: { status: 'waiting', is_valid: false, message: 'Waiting for the camera.' },

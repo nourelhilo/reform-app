@@ -1,4 +1,5 @@
 const { Pool } = require('pg');
+const { resolve } = require('node:path');
 
 let pool;
 
@@ -11,6 +12,12 @@ function query(text, values) {
     const url = new URL(connectionString);
     if (process.env.SUPABASE_DATABASE_PASSWORD) {
       url.password = encodeURIComponent(process.env.SUPABASE_DATABASE_PASSWORD);
+    }
+    if (url.hostname.endsWith('.pooler.supabase.com') || url.hostname.endsWith('.supabase.co')) {
+      if (!url.searchParams.has('sslmode')) url.searchParams.set('sslmode', 'verify-full');
+      if (!url.searchParams.has('sslrootcert')) {
+        url.searchParams.set('sslrootcert', resolve(__dirname, '../../certs/supabase-root.crt'));
+      }
     }
     pool = new Pool({
       connectionString: url.href,

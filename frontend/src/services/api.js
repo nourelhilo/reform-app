@@ -1,12 +1,13 @@
 /**
  * api.js — Backend REST API client
- * Connects to the Node/Express backend at VITE_API_URL (default: http://localhost:5000/api)
+ * Connects to the same-origin API on HTTPS or the local backend during development.
  * All secure endpoints require a verified Firebase ID token.
  */
 
 import { guestWorkouts } from './guestWorkouts';
 
-const rawBase = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const defaultApi = window.location.protocol === 'https:' ? '/api' : 'http://localhost:5000/api';
+const rawBase = import.meta.env.VITE_API_URL || defaultApi;
 // Clean base URL to remove trailing slash or duplicate /api
 const BASE_URL = rawBase.replace(/\/+$/, '').replace(/\/api$/, '');
 
@@ -48,11 +49,11 @@ export const api = {
 
   // --- Auth / User ---
 
-  /** Sync Firebase user to MongoDB on signup or login */
+  /** Sync Firebase user to the account database on signup or login */
   syncUser: (user, extraData = {}) =>
     request('POST', '/api/users/sync', user, extraData),
 
-  /** Get current user profile from MongoDB */
+  /** Get the current account profile */
   getUserProfile: (user) =>
     request('GET', '/api/users/profile', user),
 

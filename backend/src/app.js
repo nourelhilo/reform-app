@@ -10,6 +10,7 @@ const analyticsRoutes = require('./routes/analyticsRoutes');
 const healthRoutes = require('./routes/healthRoutes');
 
 const app = express();
+if (process.env.VERCEL) require('./config/firebase').initFirebase();
 
 // Security and utility middleware
 app.use(helmet());
