@@ -160,7 +160,7 @@ export const Dashboard = () => {
                       borderColor: '#ded3c3',
                       borderRadius: '12px',
                       fontSize: '12px',
-                      color: '#201c24',
+                      color: 'var(--text)',
                     }}
                   />
                   <Area

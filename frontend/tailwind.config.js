@@ -11,7 +11,7 @@ export default {
         surface: '#fffaf2',
         elevated: '#f0e8db',
         'border-subtle': '#ded3c3',
-        'text-primary': '#201c24',
+        'text-primary': 'var(--text)',
         'text-muted': '#63596a',
         accent: {
           DEFAULT: '#663da6',

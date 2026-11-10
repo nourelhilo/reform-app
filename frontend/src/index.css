@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-:root{color-scheme:light;--bg:#f8f2e7;--panel:#fffaf2;--raised:#f0e8db;--line:#ded3c3;--text:#201c24;--dim:#63596a;--accent:#663da6;--ink:#241b2e;--lavender:#e5d9fc;--lilac:#c8aff9;--pink:#f7c4df;--blue:#c5d5fa;--yellow:#fae38d;--sage:#cfdbb3}
+:root{color-scheme:light;--bg:#f8f2e7;--panel:#fffaf2;--raised:#f0e8db;--line:#ded3c3;--text:#2d251a;--dim:#63596a;--accent:#663da6;--ink:#241b2e;--lavender:#e5d9fc;--lilac:#c8aff9;--pink:#f7c4df;--blue:#c5d5fa;--yellow:#fae38d;--sage:#cfdbb3}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
 a,button{touch-action:manipulation}
@@ -128,7 +128,7 @@ a,button{touch-action:manipulation}
 .pose-card-top,.pose-card-bottom{color:#493556}
 .pose-card-bottom i{color:var(--accent)}
 .pose-angle{transform:rotate(3deg);box-shadow:0 3px 0 #5a3c72}
-.pose-angle strong{color:var(--ink)}
+.pose-angle strong{color:var(--text)}
 .studio-kicker{letter-spacing:.105em}
 .move-card-top>svg{box-sizing:content-box;padding:8px;border-radius:12px;background:var(--move-wash,var(--lavender));color:var(--ink)}
 .move-card:nth-child(2){--move-wash:var(--blue)}
@@ -158,7 +158,7 @@ a,button{touch-action:manipulation}
   .site-header-inner:has(.site-tabs){display:flex;min-height:68px;gap:12px}
   .site-tabs--mobile{position:fixed;z-index:42;left:50%;bottom:max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));width:min(calc(100% - 30px),400px);gap:3px;padding:6px;background:var(--ink);border-radius:999px;box-shadow:0 5px 22px #241b2e3a}
   .site-tabs--mobile a{display:flex;flex-direction:column;justify-content:center;gap:3px;padding:7px 3px;border-radius:999px;color:#f4ebff;font-size:11px}
-  .site-tabs--mobile a:hover,.site-tabs--mobile .active{color:var(--ink);background:var(--lilac)}
+  .site-tabs--mobile a:hover,.site-tabs--mobile .active{color:var(--text);background:var(--lilac)}
   .app-shell:has(.site-tabs--mobile) main{padding-bottom:83px}
 }
 @media(max-width:680px){
