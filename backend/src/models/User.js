@@ -1,82 +1,53 @@
-const mongoose = require('mongoose');
+const db = require('../config/db');
 
-const userSchema = new mongoose.Schema(
-  {
-    firebaseUid: {
-      type: String,
-      required: [true, 'Firebase UID is required'],
-      unique: true,
-      index: true,
-    },
-    email: {
-      type: String,
-      required: [true, 'Email is required'],
-      lowercase: true,
-      trim: true,
-      index: true,
-    },
-    name: {
-      type: String,
-      trim: true,
-      default: '',
-    },
-    profileImage: {
-      type: String,
-      default: '',
-    },
-    preferences: {
-      voiceCoaching: {
-        type: Boolean,
-        default: false,
-      },
-      soundEffects: {
-        type: Boolean,
-        default: true,
-      },
-      units: {
-        type: String,
-        enum: ['metric', 'imperial'],
-        default: 'metric',
-      },
-      preferredExercises: {
-        type: [String],
-        default: ['squat', 'pushup', 'curl', 'lunge', 'jumping_jack'],
-      },
-      cameraIndex: {
-        type: Number,
-        default: 0,
-      },
-      showSkeletonOverlay: {
-        type: Boolean,
-        default: true,
-      },
-      devOverlay: {
-        type: Boolean,
-        default: false,
-      },
-    },
-    stats: {
-      totalWorkouts: {
-        type: Number,
-        default: 0,
-      },
-      totalReps: {
-        type: Number,
-        default: 0,
-      },
-      averageFormScore: {
-        type: Number,
-        default: 0,
-      },
-      totalDurationSeconds: {
-        type: Number,
-        default: 0,
-      },
-    },
-  },
-  {
-    timestamps: true,
-  }
-);
+const defaultPreferences = {
+  voiceCoaching: false,
+  soundEffects: true,
+  units: 'metric',
+  preferredExercises: ['squat', 'pushup', 'curl', 'lunge', 'jumping_jack'],
+  cameraIndex: 0,
+  showSkeletonOverlay: true,
+  devOverlay: false,
+};
 
-module.exports = mongoose.model('User', userSchema);
+async function findProfile(firebaseUid) {
+  const { rows: [user] } = await db.query(`
+    SELECT u.id AS "_id", u.firebase_uid AS "firebaseUid", u.email, u.name,
+           u.profile_image AS "profileImage", u.preferences,
+           u.created_at AS "createdAt", u.updated_at AS "updatedAt",
+           (SELECT jsonb_build_object(
+             'totalWorkouts', count(*),
+             'totalReps', coalesce(sum(total_reps), 0),
+             'averageFormScore', coalesce(round(avg(form_score)), 0),
+             'totalDurationSeconds', coalesce(sum(duration_seconds), 0)
+           ) FROM reform_private.workouts WHERE user_id = u.id) AS stats
+    FROM reform_private.users AS u
+    WHERE u.firebase_uid = $1
+  `, [firebaseUid]);
+  if (user) user.preferences = { ...defaultPreferences, ...user.preferences };
+  return user;
+}
+
+async function getOrCreateProfile({ uid, email, name, picture }) {
+  const existing = await findProfile(uid);
+  if (existing) return existing;
+
+  await db.query(`
+    INSERT INTO reform_private.users (firebase_uid, email, name, profile_image)
+    VALUES ($1, $2, $3, $4)
+    ON CONFLICT (firebase_uid) DO NOTHING
+  `, [uid, email.trim().toLowerCase(), (name || email.split('@')[0]).trim(), picture || '']);
+  return findProfile(uid);
+}
+
+async function updateProfile(firebaseUid, { name, profileImage, preferences = {} }) {
+  await db.query(`
+    UPDATE reform_private.users
+    SET name = coalesce($2, name), profile_image = coalesce($3, profile_image),
+        preferences = preferences || $4::jsonb, updated_at = now()
+    WHERE firebase_uid = $1
+  `, [firebaseUid, name, profileImage, preferences]);
+  return findProfile(firebaseUid);
+}
+
+module.exports = { getOrCreateProfile, updateProfile };

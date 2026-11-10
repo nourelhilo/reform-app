@@ -6,7 +6,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const app = require('./app');
-const { connectDB } = require('./config/db');
+const { getDBStatus, closeDB } = require('./config/db');
 const { initFirebase } = require('./config/firebase');
 
 const PORT = process.env.PORT || 5000;
@@ -17,7 +17,8 @@ const startServer = async () => {
   console.log('\x1b[36m%s\x1b[0m', '═══════════════════════════════════════════════');
 
   // Initialize external services
-  await connectDB();
+  const database = await getDBStatus();
+  if (database.configured && !database.connected) console.warn('Supabase database is unavailable.');
   initFirebase();
 
   const server = app.listen(PORT, () => {
@@ -27,7 +28,8 @@ const startServer = async () => {
 
   const handleShutdown = () => {
     console.log('\nGracefully shutting down backend server...');
-    server.close(() => {
+    server.close(async () => {
+      await closeDB();
       console.log('Server terminated cleanly.');
       process.exit(0);
     });

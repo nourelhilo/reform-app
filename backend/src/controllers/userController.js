@@ -1,3 +1,5 @@
+const User = require('../models/User');
+
 // @desc    Get or sync current user profile
 // @route   GET /api/users/profile
 // @access  Private
@@ -15,17 +17,15 @@ const getUserProfile = async (req, res, next) => {
 const updateUserProfile = async (req, res, next) => {
   try {
     const { name, profileImage, preferences } = req.body;
-    const user = req.user;
-
-    if (name !== undefined) user.name = name;
-    if (profileImage !== undefined) user.profileImage = profileImage;
+    const updates = { name: typeof name === 'string' ? name.trim() : undefined,
+      profileImage: typeof profileImage === 'string' ? profileImage : undefined, preferences: {} };
     if (preferences && typeof preferences === 'object') {
       for (const key of ['voiceCoaching', 'showSkeletonOverlay']) {
-        if (typeof preferences[key] === 'boolean') user.set(`preferences.${key}`, preferences[key]);
+        if (typeof preferences[key] === 'boolean') updates.preferences[key] = preferences[key];
       }
     }
 
-    await user.save();
+    const user = await User.updateProfile(req.user.firebaseUid, updates);
     res.json({ success: true, user, message: 'Profile updated successfully' });
   } catch (error) {
     next(error);
@@ -37,11 +37,14 @@ const updateUserProfile = async (req, res, next) => {
 // @access  Private
 const syncUser = async (req, res, next) => {
   try {
-    const user = req.user;
     const { name, profileImage } = req.body;
-    if (typeof name === 'string' && name.trim()) user.name = name.trim();
-    if (typeof profileImage === 'string' && profileImage) user.profileImage = profileImage;
-    if (user.isModified()) await user.save();
+    const updates = {
+      name: typeof name === 'string' ? name.trim() || undefined : undefined,
+      profileImage: typeof profileImage === 'string' ? profileImage || undefined : undefined,
+    };
+    const user = updates.name || updates.profileImage
+      ? await User.updateProfile(req.user.firebaseUid, updates)
+      : req.user;
     res.json({ success: true, user });
   } catch (error) {
     next(error);

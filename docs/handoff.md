@@ -10,7 +10,7 @@ The local `reform/pose-and-ui` branch contains the pose fixes, functionality che
 
 1. Check out the branch and follow the README. Try a guest workout first; it needs no account or database.
 2. Bring a few labeled clips per exercise, with expected rep counts, including at least one partial rep and one interruption. Follow the [pose validation plan](pose-validation.md) before claiming webcam accuracy.
-3. Try the workout flow on your own phone and desktop camera, then check sign-in, saving, and history with your Firebase and MongoDB project. Keep any further style changes consistent with the palette above.
+3. Try the workout flow on your own phone and desktop camera, then check sign-in, saving, and history with your Firebase and Supabase projects. Keep any further style changes consistent with the palette above.
 4. **Future feature: Workout Tracker.** Add a dedicated section to log workouts by date with exercises, sets, reps, optional weights, and notes. Let users add a completed webcam session. Decide later whether planned workouts and a calendar belong in the first version. This is separate from the current workout history.
 
 The branch can be reviewed locally without a deployment or migration. Older workout scores were calculated with different rules.

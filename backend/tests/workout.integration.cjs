@@ -2,14 +2,22 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('node:http');
 const { once } = require('node:events');
+const { readFileSync } = require('node:fs');
+const { join } = require('node:path');
+const { PGlite } = require('@electric-sql/pglite');
 
-const uri = process.env.REFORM_TEST_MONGODB_URI;
-
-test('auth, preferences, workout history, analytics, and ownership', { skip: !uri }, async (t) => {
-  // Never run this test against a remote or shared database.
-  assert.match(uri, /^mongodb:\/\/(?:127\.0\.0\.1|localhost):\d+$/);
-  process.env.MONGODB_URI = uri;
-  process.env.DATABASE_NAME = `reform_ci_${process.pid}_${Date.now()}`;
+test('auth, preferences, workout history, analytics, and ownership', async (t) => {
+  const database = new PGlite();
+  t.after(() => database.close());
+  await database.exec(readFileSync(join(__dirname, '../sql/001_reform.sql'), 'utf8'));
+  process.env.SUPABASE_DATABASE_URL = 'postgresql://test@localhost/test';
+  const db = require('../src/config/db');
+  t.mock.method(db, 'query', async (text, values) => {
+    const params = values?.map(value => value === undefined ? null :
+      value instanceof Date ? value.toISOString() : value);
+    const result = await database.query(text, params);
+    return { ...result, rowCount: result.affectedRows };
+  });
   process.env.FIREBASE_PROJECT_ID = 'demo-reform';
   // Firebase Admin verifies emulator tokens and checks the account by UID.
   const identity = http.createServer(async (req, res) => {
@@ -29,18 +37,11 @@ test('auth, preferences, workout history, analytics, and ownership', { skip: !ur
   t.after(() => identity.close());
   process.env.FIREBASE_AUTH_EMULATOR_HOST = `127.0.0.1:${identity.address().port}`;
 
-  const mongoose = require('mongoose');
   const request = require('supertest');
-  const { connectDB } = require('../src/config/db');
   const { initFirebase } = require('../src/config/firebase');
   const app = require('../src/app');
-  assert.equal(await connectDB(), true);
   const firebase = initFirebase();
-  t.after(async () => {
-    await mongoose.connection.dropDatabase();
-    await mongoose.disconnect();
-    await firebase.delete();
-  });
+  t.after(() => firebase.delete());
 
   const encode = value => Buffer.from(JSON.stringify(value)).toString('base64url');
   const token = uid => {
@@ -56,7 +57,7 @@ test('auth, preferences, workout history, analytics, and ownership', { skip: !ur
   await agent.get('/api/workouts').expect(401);
   await agent.get('/api/workouts').set('Authorization', 'Bearer bad').expect(401);
   await agent.get('/api/health').expect(200).expect(res => {
-    assert.equal(res.body.services.mongodb.connected, true);
+    assert.deepEqual(res.body.services.supabase, { configured: true, connected: true });
   });
 
   const account = auth('athlete');

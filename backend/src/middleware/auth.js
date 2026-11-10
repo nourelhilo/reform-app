@@ -36,16 +36,7 @@ const verifyAuth = async (req, res, next) => {
   }
 
   try {
-    req.firebaseUser = identity;
-    req.user = await User.findOneAndUpdate(
-      { firebaseUid: identity.uid },
-      { $setOnInsert: {
-        email: identity.email,
-        name: identity.name || identity.email.split('@')[0],
-        profileImage: identity.picture || '',
-      } },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
-    );
+    req.user = await User.getOrCreateProfile(identity);
     next();
   } catch (error) {
     next(error);

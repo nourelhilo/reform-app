@@ -30,8 +30,9 @@ Open [http://localhost:5173](http://localhost:5173), choose **Start Workout**, a
 ### Optional account sync
 
 1. Enable the Email/Password or Google provider in your Firebase project. Add your frontend domain to Firebase's authorized domains.
-2. Copy the frontend variables in [`.env.example`](.env.example) into `frontend/.env`, and the backend variables into `backend/.env`. Configure the same Firebase project on both and set `MONGODB_URI` on the backend.
-3. From `backend/`, run `npm ci` and `npm start`. Check [the backend health endpoint](http://localhost:5000/api/health) for the MongoDB and Firebase configuration status.
+2. Run [the Reform schema](backend/sql/001_reform.sql) in your Supabase project's SQL Editor. Use the **Connect** dialog to obtain the session pooler URI for a local server or the transaction pooler URI for serverless hosting.
+3. Copy the frontend variables in [`.env.example`](.env.example) into `frontend/.env`, and the backend variables into `backend/.env`. Configure the same Firebase project on both and set `SUPABASE_DATABASE_URL` only on the backend. If the URI omits the password, set `SUPABASE_DATABASE_PASSWORD` separately.
+4. From `backend/`, run `npm ci` and `npm start`. Check [the backend health endpoint](http://localhost:5000/api/health) for the Supabase and Firebase connection status.
 
 For hosting, serve the frontend over HTTPS, set `VITE_AI_ENGINE_WS_URL` to the `wss://` endpoint, and allow the exact frontend origin in `AI_CORS_ORIGINS` on the pose service. Set `CLIENT_URL` on the REST backend and `VITE_API_URL` on the frontend. If you change the frontend port, update both allowed origins. Camera frames are processed in memory by the pose service; the workout database stores session statistics.
 
@@ -54,9 +55,9 @@ The experimental exercise classifier is disabled during workouts. Its score at `
 - **Pose rules and API:** From `ai-engine/`, run `python -m pytest -q` inside the virtual environment. The optional real-person test runs if `REFORM_TEST_IMAGE` points to [MediaPipe's pose sample](https://storage.googleapis.com/mediapipe-assets/pose.jpg); with it, 31 tests run.
 - **Recorded squat:** Follow the replay instructions in [the validation notes](docs/pose-validation.md).
 - **Frontend:** Run `npm run build` from `frontend/`. Check a guest session through camera setup, live reps, pause, an exercise switch, and recap. In a signed-in session, also check Profile, save, and history.
-- **Backend:** With disposable MongoDB running locally, set `REFORM_TEST_MONGODB_URI` to its loopback URI (for example, `mongodb://127.0.0.1:27019`) and run `npm test` from `backend/`. This uses an isolated test database and emulator-style Firebase tokens. It does not use your real account or database.
+- **Backend:** Run `npm test` from `backend/`. The integration test runs the Reform schema in an in-memory PostgreSQL database and uses emulator-style Firebase tokens.
 
-The desktop and mobile browser walkthrough passed with a simulated camera and account services. The Express integration test passed against local MongoDB for preferences, saving, history, analytics, and ownership. A physical camera and your deployed Firebase project still need a manual check.
+The desktop and mobile browser walkthrough passed with a simulated camera and account services. The Express integration test covers preferences, saving, history, analytics, and ownership. A physical camera and your hosted Supabase and Firebase projects still need a manual check.
 
 ## Next work
 

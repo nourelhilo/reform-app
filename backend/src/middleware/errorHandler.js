@@ -1,18 +1,10 @@
 const errorHandler = (err, req, res, next) => {
   console.error('\x1b[31m%s\x1b[0m', `[API Error] ${req.method} ${req.originalUrl}:`, err);
 
-  let statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-  let message = err.message || 'Internal Server Error';
-
-  if (err.name === 'ValidationError') {
-    statusCode = 400;
-    message = Object.values(err.errors).map(val => val.message).join(', ');
-  }
-
-  if (err.name === 'CastError') {
-    statusCode = 400;
-    message = `Invalid resource ID format for field ${err.path}`;
-  }
+  const invalidId = err.code === '22P02';
+  const statusCode = invalidId ? 400 : err.status || 500;
+  const message = invalidId ? 'Invalid workout ID.' :
+    statusCode < 500 || statusCode === 503 ? err.message : 'Internal Server Error';
 
   res.status(statusCode).json({
     success: false,
