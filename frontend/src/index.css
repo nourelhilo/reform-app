@@ -11,8 +11,13 @@ a,button{touch-action:manipulation}
 .font-mono-stat{font-variant-numeric:tabular-nums}
 .site-header{border-bottom:1px solid #e1d6c8;background:#f8f2e7ef;position:sticky;top:0;z-index:40;backdrop-filter:blur(14px)}
 .site-header-inner{max-width:1260px;padding:0 40px;margin:auto;min-height:72px;display:flex;align-items:center;justify-content:space-between;gap:20px}
-.brand{display:inline-flex;align-items:center;flex-shrink:0;gap:10px;color:var(--ink);font-size:27px;font-weight:800;letter-spacing:-.04em}
+.brand{display:inline-flex;align-items:center;flex-shrink:0;gap:10px;color:var(--ink);font-size:30px;font-weight:800;letter-spacing:-.04em}
 .brand img{height:auto}
+@media(width > 880px){
+  .site-header-inner{max-width:none;padding-left:28px;padding-right:max(40px,calc((100% - 1180px) / 2));min-height:80px}
+  .brand{font-size:34px}
+  .brand img{width:76px}
+}
 .studio-back:hover{color:var(--text)}
 .site-tabs{display:flex;gap:6px;overflow:auto}
 .site-tabs a{display:flex;gap:8px;align-items:center;padding:9px 12px;color:var(--dim);font-size:14px;border-radius:8px;white-space:nowrap}
