@@ -52,11 +52,10 @@ export function Landing() {
   return <div className="landing-wrap">
     <section className="landing-hero">
       <div className="landing-copy">
-        <img className="landing-logo" src="/reform-primary.svg" alt="Reform" width="108" height="78" />
         <h1>Real-time form tracking through your webcam.</h1>
         <p>Reform estimates joint angles, detects movement phases, counts repetitions, and provides live audio coaching.</p>
         <div className="flex flex-wrap items-center gap-3">
-          <Link to="/workout/setup" className="studio-button">Start Workout <ArrowUpRight size={19} /></Link>
+          <Link to="/workout/setup" className="studio-button start-workout">Start Workout <ArrowUpRight size={19} /></Link>
           <Link to="/dashboard" className="studio-button subtle">Open Dashboard <ArrowRight size={16} /></Link>
         </div>
       </div>

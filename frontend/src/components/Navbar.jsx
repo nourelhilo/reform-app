@@ -25,7 +25,7 @@ export function Navbar() {
     <header className="site-header">
       <div className="site-header-inner">
         <Link to="/" className="brand" aria-label="Reform home">
-          <img src="/reform-secondary.svg" alt="" width="54" height="41" />
+          <img src="/reform-secondary.svg" alt="" width="144" height="35" />
         </Link>
         {navigation()}
         {user && (
