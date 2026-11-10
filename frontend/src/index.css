@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-:root{color-scheme:light;--bg:#f8f2e7;--panel:#fffaf2;--raised:#f0e8db;--line:#ded3c3;--text:#2d251a;--dim:#63596a;--accent:#663da6;--ink:#241b2e;--lavender:#e5d9fc;--lilac:#c8aff9;--pink:#f7c4df;--blue:#c5d5fa;--yellow:#fae38d;--sage:#cfdbb3}
+:root{color-scheme:light;--bg:#f8f2e7;--panel:#fffaf2;--raised:#f0e8db;--line:#ded3c3;--ink:#241b2e;--text:var(--ink);--dim:#63596a;--accent:#663da6;--lavender:#e5d9fc;--lilac:#c8aff9;--pink:#f7c4df;--blue:#c5d5fa;--yellow:#fae38d;--sage:#cfdbb3}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
 a,button{touch-action:manipulation}
@@ -11,8 +11,8 @@ a,button{touch-action:manipulation}
 .font-mono-stat{font-variant-numeric:tabular-nums}
 .site-header{border-bottom:1px solid #e1d6c8;background:#f8f2e7ef;position:sticky;top:0;z-index:40;backdrop-filter:blur(14px)}
 .site-header-inner{max-width:1260px;padding:0 40px;margin:auto;min-height:72px;display:flex;align-items:center;justify-content:space-between;gap:20px}
-.brand{display:inline-flex;align-items:center;flex-shrink:0}
-.brand img{width:clamp(118px,14vw,144px);height:auto}
+.brand{display:inline-flex;align-items:center;flex-shrink:0;gap:8px;color:var(--ink);font-size:20px;font-weight:800;letter-spacing:-.04em}
+.brand img{width:44px;height:auto}
 .studio-back:hover{color:var(--text)}
 .site-tabs{display:flex;gap:6px;overflow:auto}
 .site-tabs a{display:flex;gap:8px;align-items:center;padding:9px 12px;color:var(--dim);font-size:14px;border-radius:8px;white-space:nowrap}
@@ -20,7 +20,6 @@ a,button{touch-action:manipulation}
 .studio-button{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:0 19px;border:1px solid transparent;border-radius:999px;background:var(--ink);color:#fffaf2;font-size:14px;font-weight:750;line-height:1.2;transition:background .18s,border-color .18s,transform .18s}
 .studio-button svg,.studio-caption svg,.camera-hint svg{flex-shrink:0}
 .studio-button:hover{background:#48325f;transform:translateY(-1px)}
-.studio-button.start-workout{background:var(--text)}
 .studio-button.subtle{background:var(--panel);color:var(--text);border-color:var(--line)}
 .studio-button.subtle:hover{background:var(--raised);border-color:#a98cd7}
 .studio-button.compact{min-height:40px;padding:0 12px;font-size:13px}

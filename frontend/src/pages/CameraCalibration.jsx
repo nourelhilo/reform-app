@@ -37,7 +37,7 @@ export function CameraCalibration() {
           {connection === 'offline' ? <WifiOff size={16}/> : <ScanLine size={16}/>}
           {connection === 'offline' ? 'Tracking is offline. Reconnecting…' : ready ? 'Tracking stable' : camera === 'ready' && connection === 'connected' ? visibility.message : 'Waiting for detection…'}
         </div>
-        <button className="studio-button start-workout w-full" disabled={!ready} onClick={() => navigate('/workout/active', { state: { exercises: list } })}>
+        <button className="studio-button w-full" disabled={!ready} onClick={() => navigate('/workout/active', { state: { exercises: list } })}>
           Start Workout <ArrowRight size={18}/>
         </button>
         <p className="studio-caption"><Camera size={15}/> Camera frames are sent to the pose tracking service during setup and training.</p>
