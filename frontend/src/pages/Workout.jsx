@@ -116,11 +116,14 @@ export function Workout() {
         Math.round(allReps.reduce((total, rep) => total + rep.formScore, 0) / allReps.length) : 0,
       meta: { poseRuleVersion: 2 }, exercises: completed, startedAt: startedAt.current, endedAt: new Date().toISOString(),
     };
-    let saveStatus = 'guest';
-    if (user && allReps.length) {
-      try { await api.saveWorkout(workoutData, user); saveStatus = 'saved'; }
+    let saveStatus = 'empty';
+    if (allReps.length) {
+      try {
+        await api.saveWorkout(workoutData, user);
+        saveStatus = user ? 'saved' : 'local';
+      }
       catch { saveStatus = 'failed'; }
-    } else if (user) saveStatus = 'empty';
+    }
     navigate('/workout/summary', { state: { workoutData, saveStatus }, replace: true });
   };
 

@@ -6,15 +6,17 @@ import { Play, Activity, Award, Clock, ArrowRight, TrendingUp, Calendar, AlertCi
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
 
 export const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (authLoading) return;
     const fetchDashboard = async () => {
       try {
         setLoading(true);
+        setError(null);
         const res = await api.getDashboardMetrics(user);
         setData(res);
       } catch (err) {
@@ -26,7 +28,7 @@ export const Dashboard = () => {
     };
 
     fetchDashboard();
-  }, [user]);
+  }, [authLoading, user]);
 
   // Greeting
   const hour = new Date().getHours();

@@ -4,6 +4,8 @@
  * All secure endpoints require a verified Firebase ID token.
  */
 
+import { guestWorkouts } from './guestWorkouts';
+
 const rawBase = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 // Clean base URL to remove trailing slash or duplicate /api
 const BASE_URL = rawBase.replace(/\/+$/, '').replace(/\/api$/, '');
@@ -61,12 +63,12 @@ export const api = {
   // --- Workouts ---
 
   /** Save a completed workout session */
-  saveWorkout: (workoutPayload, user) =>
-    request('POST', '/api/workouts', user, workoutPayload),
+  saveWorkout: async (workoutPayload, user) =>
+    user ? request('POST', '/api/workouts', user, workoutPayload) : guestWorkouts.save(workoutPayload),
 
   /** Get paginated workout history */
-  getWorkouts: (user, { page = 1, limit = 10 } = {}) =>
-    request('GET', `/api/workouts?page=${page}&limit=${limit}`, user),
+  getWorkouts: async (user, { page = 1, limit = 10 } = {}) =>
+    user ? request('GET', `/api/workouts?page=${page}&limit=${limit}`, user) : guestWorkouts.history(page, limit),
 
   /** Get a single workout by ID */
   getWorkout: (user, workoutId) =>
@@ -79,12 +81,12 @@ export const api = {
   // --- Analytics ---
 
   /** Get dashboard overview & weekly trends */
-  getDashboardMetrics: (user) =>
-    request('GET', '/api/analytics/dashboard', user),
+  getDashboardMetrics: async (user) =>
+    user ? request('GET', '/api/analytics/dashboard', user) : guestWorkouts.dashboard(),
 
   /** Get exercise-specific progress & score history */
-  getProgressAnalytics: (user) =>
-    request('GET', '/api/analytics/progress', user),
+  getProgressAnalytics: async (user) =>
+    user ? request('GET', '/api/analytics/progress', user) : guestWorkouts.progress(),
 
   /** Analytics aliases */
   getAnalyticsSummary: (user) =>

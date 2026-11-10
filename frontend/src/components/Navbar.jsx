@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { ArrowUpRight, BarChart3, History, LayoutDashboard, LogOut, Play, User } from 'lucide-react';
+import { BarChart3, History, LayoutDashboard, LogOut, Play, User } from 'lucide-react';
 
 const tabs = [
   ['Dashboard', '/dashboard', LayoutDashboard], ['Workout', '/workout/setup', Play],
@@ -28,18 +28,15 @@ export function Navbar() {
           <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M7 23 14 8h5l-7 15H7Zm9 0 7-15h4l-7 15h-4Z" fill="currentColor"/></svg>
           Reform
         </Link>
-        {user && navigation()}
-        <div className="flex items-center gap-2 sm:gap-3">
-          {user ? <>
+        {navigation()}
+        {user && (
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link className="studio-button subtle compact" aria-label="Profile" to="/profile"><User size={17} /></Link>
             <button className="studio-button subtle compact" onClick={logout} aria-label="Sign out"><LogOut size={17} /></button>
-          </> : <>
-            <Link className="site-sign-in" to="/login">Sign In</Link>
-            <Link className="studio-button compact" to="/register">Get Started <ArrowUpRight size={15} /></Link>
-          </>}
-        </div>
+          </div>
+        )}
       </div>
     </header>
-    {user && navigation(true)}
+    {navigation(true)}
   </>;
 }

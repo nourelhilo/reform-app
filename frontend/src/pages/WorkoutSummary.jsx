@@ -13,7 +13,7 @@ export function WorkoutSummary() {
     <Link className="studio-button" to="/workout/setup">Choose a workout <ArrowRight size={17}/></Link></div>;
   const note = {
     saved: 'Saved to your workout history.',
-    guest: 'Guest session. This summary is available here for now.',
+    local: 'Saved to workout history on this device.',
     failed: 'Your session couldn’t be saved to history. You can still review it here.',
     empty: 'No reps were counted, so this session wasn’t added to your history.',
   }[state.saveStatus];
@@ -35,8 +35,8 @@ export function WorkoutSummary() {
     </section>
     <div className="summary-actions">
       <Link className="studio-button" to="/workout/setup"><RotateCcw size={17}/> Train Again</Link>
-      <Link className="studio-button subtle" to={state.saveStatus === 'guest' ? '/' : '/history'}>
-        {state.saveStatus === 'guest' ? 'Back home' : 'Workout history'} <ArrowRight size={17}/>
+      <Link className="studio-button subtle" to="/history">
+        Workout History <ArrowRight size={17}/>
       </Link>
     </div>
   </div>;

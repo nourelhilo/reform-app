@@ -13,8 +13,7 @@ a,button{touch-action:manipulation}
 .site-header-inner{max-width:1260px;padding:0 40px;margin:auto;min-height:72px;display:flex;align-items:center;justify-content:space-between;gap:20px}
 .brand{display:inline-flex;align-items:center;gap:8px;font-size:24px;font-weight:800;letter-spacing:-.07em;white-space:nowrap}
 .brand svg{width:34px;height:34px;border-radius:9px;color:var(--ink);background:var(--lilac)}
-.site-sign-in{color:var(--dim);font-size:14px;padding:10px;white-space:nowrap}
-.site-sign-in:hover,.studio-back:hover{color:var(--text)}
+.studio-back:hover{color:var(--text)}
 .site-tabs{display:flex;gap:6px;overflow:auto}
 .site-tabs a{display:flex;gap:8px;align-items:center;padding:9px 12px;color:var(--dim);font-size:14px;border-radius:8px;white-space:nowrap}
 .site-tabs a:hover,.site-tabs .active{color:var(--accent);background:var(--raised)}

@@ -29,12 +29,13 @@ const PrivateRoute = ({ children }) => {
       </div>
     );
   }
-  return user ? children : <Navigate to="/login" replace />;
+  return user ? children : <Navigate to="/dashboard" replace />;
 };
 
 // Guest-only guard (redirect logged-in users to dashboard)
 const GuestRoute = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, isConfigured } = useAuth();
+  if (!isConfigured) return <Navigate to="/workout/setup" replace />;
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -59,15 +60,14 @@ export const App = () => {
           <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
           <Route path="/verify-email" element={<VerifyEmail />} />
 
-          {/* Protected routes */}
-          <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/workout/setup" element={<WorkoutSetup />} />
           <Route path="/workout/calibration" element={<CameraCalibration />} />
           <Route path="/workout/active" element={<Workout />} />
           <Route path="/workout/summary" element={<WorkoutSummary />} />
-          <Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
-          <Route path="/progress" element={<PrivateRoute><Analytics /></PrivateRoute>} />
-          <Route path="/analytics" element={<PrivateRoute><Analytics /></PrivateRoute>} />
+          <Route path="/history" element={<History />} />
+          <Route path="/progress" element={<Analytics />} />
+          <Route path="/analytics" element={<Analytics />} />
           <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
 
           {/* Catch-all */}

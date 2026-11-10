@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Activity, ArrowRight, ArrowUpRight, Gauge, ScanLine, Volume2 } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
 
 function PosePreview() {
   return <div className="pose-card">
@@ -50,8 +49,6 @@ const features = [
 ];
 
 export function Landing() {
-  const { user } = useAuth();
-
   return <div className="landing-wrap">
     <section className="landing-hero">
       <div className="landing-copy">
@@ -59,7 +56,7 @@ export function Landing() {
         <p>Reform estimates joint angles, detects movement phases, counts repetitions, and provides live audio coaching.</p>
         <div className="flex flex-wrap items-center gap-3">
           <Link to="/workout/setup" className="studio-button">Start Workout <ArrowUpRight size={19} /></Link>
-          <Link to={user ? '/dashboard' : '/login'} className="studio-button subtle">{user ? 'Open Dashboard' : 'Sign In'} <ArrowRight size={16} /></Link>
+          <Link to="/dashboard" className="studio-button subtle">Open Dashboard <ArrowRight size={16} /></Link>
         </div>
       </div>
       <PosePreview />

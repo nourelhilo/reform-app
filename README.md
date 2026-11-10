@@ -2,7 +2,7 @@
 
 **What we verified about the workout angles:** Reform passed 27 geometry and rep-counting checks across five exercises and four pose-service checks, including a real-person image sent through the WebSocket. Reform also counted one rep on a recorded University of Idaho deep squat. On that clip, the side-view knee angle differed from the 3D angle calculated from the same joints by **7.9° on average**, with a **38.4°** worst frame. We checked the counting targets against published exercise guidance. These results do not establish webcam accuracy across people and devices. See the [exercise targets, sources, and validation plan](docs/pose-validation.md).
 
-Reform is a webcam workout coach for squats, standard floor push-ups, single-arm bicep curls, forward lunges, and jumping jacks. It estimates joint angles, counts reps, and offers on-screen and optional spoken cues. Guests can run a full session without an account; signed-in users can save their recap and see it in history and progress.
+Reform is a webcam workout coach for squats, standard floor push-ups, single-arm bicep curls, forward lunges, and jumping jacks. It estimates joint angles, counts reps, and offers on-screen and optional spoken cues. You can train and view your history and progress without an account. Guest workouts are stored in the browser you use to train.
 
 ## Run locally
 
@@ -27,7 +27,7 @@ npm run dev
 
 Open [http://localhost:5173](http://localhost:5173), choose **Start Workout**, and allow camera access. Follow the camera guide for the selected exercise. If the app says tracking is offline, check [the pose-service health endpoint](http://localhost:8000/health).
 
-### Sign-in and saved workouts
+### Optional account sync
 
 1. Enable the Email/Password or Google provider in your Firebase project. Add your frontend domain to Firebase's authorized domains.
 2. Copy the frontend variables in [`.env.example`](.env.example) into `frontend/.env`, and the backend variables into `backend/.env`. Configure the same Firebase project on both and set `MONGODB_URI` on the backend.

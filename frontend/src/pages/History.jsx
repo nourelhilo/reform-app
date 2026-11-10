@@ -22,7 +22,7 @@ const EXERCISE_LABELS = {
 };
 
 export const History = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [workouts, setWorkouts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -31,8 +31,8 @@ export const History = () => {
   const LIMIT = 10;
 
   useEffect(() => {
+    if (authLoading) return;
     const fetchHistory = async () => {
-      if (!user) { setLoading(false); return; }
       setLoading(true);
       setError(null);
       try {
@@ -46,7 +46,7 @@ export const History = () => {
       }
     };
     fetchHistory();
-  }, [user, page]);
+  }, [authLoading, user, page]);
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-10">

@@ -21,15 +21,15 @@ const sparklinePath = (points, width = 100, height = 40) => {
 };
 
 export const Analytics = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [dashboard, setDashboard] = useState(null);
   const [progress, setProgress] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (authLoading) return;
     const load = async () => {
-      if (!user) { setLoading(false); return; }
       setLoading(true);
       setError(null);
       try {
@@ -46,7 +46,7 @@ export const Analytics = () => {
       }
     };
     load();
-  }, [user]);
+  }, [authLoading, user]);
 
   if (loading) {
     return (
