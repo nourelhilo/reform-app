@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { ArrowUpRight, BarChart3, History, LayoutDashboard, LogOut, Play, User } from 'lucide-react';
 
 const tabs = [
-  ['Overview', '/dashboard', LayoutDashboard], ['Train', '/workout/setup', Play],
+  ['Dashboard', '/dashboard', LayoutDashboard], ['Workout', '/workout/setup', Play],
   ['History', '/history', History], ['Progress', '/progress', BarChart3],
 ];
 
@@ -15,7 +15,7 @@ export function Navbar() {
     <nav className={mobile ? 'site-tabs site-tabs--mobile' : 'site-tabs'} aria-label="Main navigation">
       {tabs.map(([label, path, Icon]) => (
         <NavLink key={path} to={path} className={({ isActive }) =>
-          (isActive || (label === 'Train' && pathname.startsWith('/workout/'))) ? 'active' : ''}>
+          (isActive || (label === 'Workout' && pathname.startsWith('/workout/'))) ? 'active' : ''}>
           <Icon size={16} aria-hidden="true" />{label}
         </NavLink>
       ))}
@@ -26,7 +26,7 @@ export function Navbar() {
       <div className="site-header-inner">
         <Link to="/" className="brand" aria-label="Reform home">
           <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M7 23 14 8h5l-7 15H7Zm9 0 7-15h4l-7 15h-4Z" fill="currentColor"/></svg>
-          Reform<span>.</span>
+          Reform
         </Link>
         {user && navigation()}
         <div className="flex items-center gap-2 sm:gap-3">
@@ -34,8 +34,8 @@ export function Navbar() {
             <Link className="studio-button subtle compact" aria-label="Profile" to="/profile"><User size={17} /></Link>
             <button className="studio-button subtle compact" onClick={logout} aria-label="Sign out"><LogOut size={17} /></button>
           </> : <>
-            <Link className="site-sign-in" to="/login">Sign in</Link>
-            <Link className="studio-button compact" to="/workout/setup">Start training <ArrowUpRight size={15} /></Link>
+            <Link className="site-sign-in" to="/login">Sign In</Link>
+            <Link className="studio-button compact" to="/register">Get Started <ArrowUpRight size={15} /></Link>
           </>}
         </div>
       </div>

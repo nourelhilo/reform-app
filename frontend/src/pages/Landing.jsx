@@ -1,10 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowDown, ArrowRight, ArrowUpRight, Camera, Gauge, ScanLine, Volume2 } from 'lucide-react';
+import { Activity, ArrowRight, ArrowUpRight, Gauge, ScanLine, Volume2 } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 function PosePreview() {
   return <div className="pose-card">
-    <div className="pose-card-top"><span><ScanLine size={16} /> Motion preview</span><span className="sample-tag">Sample</span></div>
+    <div className="pose-card-top"><span><ScanLine size={16} /> live_feed.cv</span><span className="sample-tag">Sample</span></div>
     <div className="pose-art">
       <svg viewBox="0 0 480 330" role="img" aria-label="Illustrated side view of a squat with shoulder, hip, knee and ankle markers">
         <defs>
@@ -43,31 +44,29 @@ function PosePreview() {
 }
 
 const features = [
-  [Camera, 'Set up your camera', 'Choose an exercise and follow the camera guide so the right joints stay in view.'],
-  [Gauge, 'Track each rep', 'See the estimated joint angle and count each rep when you hit the target and return to start.'],
-  [Volume2, 'Train with feedback', 'Follow short cues on screen or turn on voice coaching to keep your eyes off the screen.'],
+  [Activity, 'Pose Landmarks', 'Extracts 33 landmarks per frame to estimate joint angles.'],
+  [Gauge, 'Multi-Phase State Machines', 'Counts a repetition when the movement reaches its range target and returns to the starting position.'],
+  [Volume2, 'Spoken Feedback Engine', 'Delivers optional voice cues during workouts.'],
 ];
 
 export function Landing() {
+  const { user } = useAuth();
+
   return <div className="landing-wrap">
     <section className="landing-hero">
       <div className="landing-copy">
-        <div className="studio-kicker"><span /> THE WEBCAM WORKOUT COACH</div>
-        <h1>Train with<br/>better <em>form.</em></h1>
-        <p>Get live feedback on your reps and movement using the camera you already have.</p>
+        <h1>Real-time form tracking through your webcam.</h1>
+        <p>Reform estimates joint angles, detects movement phases, counts repetitions, and provides live audio coaching.</p>
         <div className="flex flex-wrap items-center gap-3">
-          <Link to="/workout/setup" className="studio-button">Start a workout <ArrowUpRight size={19} /></Link>
-          <a href="#how-it-works" className="studio-button subtle">How it works <ArrowDown size={16} /></a>
+          <Link to="/workout/setup" className="studio-button">Start Workout <ArrowUpRight size={19} /></Link>
+          <Link to={user ? '/dashboard' : '/login'} className="studio-button subtle">{user ? 'Open Dashboard' : 'Sign In'} <ArrowRight size={16} /></Link>
         </div>
-        <div className="hero-note"><Camera size={15}/> A camera and space to move are all you need.</div>
       </div>
       <PosePreview />
     </section>
-    <section id="how-it-works" className="landing-steps">
-      <div className="landing-section-label"><span className="studio-kicker">THE WORKOUT FLOW</span><h2>From setup to last rep.</h2></div>
-      <div className="feature-grid">{features.map(([Icon, name, description], i) =>
-        <article key={name}><div className="feature-top"><Icon size={22} /><span>0{i + 1}</span></div><h3>{name}</h3><p>{description}</p></article>)}</div>
+    <section className="landing-steps" aria-label="Reform features">
+      <div className="feature-grid">{features.map(([Icon, name, description]) =>
+        <article key={name}><div className="feature-top"><Icon size={22} /></div><h3>{name}</h3><p>{description}</p></article>)}</div>
     </section>
-    <footer className="landing-footer"><span>REFORM / TRAINING STUDIO</span><Link to="/workout/setup">Choose a movement <ArrowRight size={15} /></Link></footer>
   </div>;
 }

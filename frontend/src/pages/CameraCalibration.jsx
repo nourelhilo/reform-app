@@ -19,9 +19,8 @@ export function CameraCalibration() {
   return <div className="studio-wrap">
     <Link to="/workout/setup" state={{ exercises: list }} className="studio-back"><ArrowLeft size={16}/> Change exercises</Link>
     <div className="studio-heading">
-      <div className="studio-kicker"><span/> 02 / SET YOUR FRAME</div>
-      <h1>Get in position.</h1>
-      <p>Let Reform find the joints it needs before you start moving.</p>
+      <div className="studio-kicker">Setup</div>
+      <h1>Camera Check</h1>
     </div>
     <div className="studio-layout camera-layout">
       <div><CameraView onStatus={setCamera} onFrameCapture={sendFrame} targetFps={6}
@@ -36,10 +35,10 @@ export function CameraCalibration() {
         </div>
         <div className="camera-hint" role="status">
           {connection === 'offline' ? <WifiOff size={16}/> : <ScanLine size={16}/>}
-          {connection === 'offline' ? 'Tracking is offline. Reconnecting…' : ready ? 'Frame looks good. Ready to train.' : camera === 'ready' && connection === 'connected' ? visibility.message : 'Waiting for your camera and tracking service.'}
+          {connection === 'offline' ? 'Tracking is offline. Reconnecting…' : ready ? 'Tracking stable' : camera === 'ready' && connection === 'connected' ? visibility.message : 'Waiting for detection…'}
         </div>
         <button className="studio-button w-full" disabled={!ready} onClick={() => navigate('/workout/active', { state: { exercises: list } })}>
-          Begin workout <ArrowRight size={18}/>
+          Start Workout <ArrowRight size={18}/>
         </button>
         <p className="studio-caption"><Camera size={15}/> Camera frames are sent to the pose tracking service during setup and training.</p>
       </aside>

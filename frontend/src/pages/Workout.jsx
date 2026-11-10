@@ -46,7 +46,7 @@ function WorkoutSet({ id, index, list, onAdvance, onFinish, voice, setVoice, sho
 
   return <>
     <div className="training-heading">
-      <div><div className="studio-kicker"><span /> 03 / LIVE SESSION</div><h1>{movement.name}</h1></div>
+      <div><div className="studio-kicker">Current Exercise</div><h1>{movement.name}</h1></div>
       <div className="training-controls">
         <span className="training-time">{displayTime(seconds)}</span>
         <button className="studio-button subtle compact" aria-label={voice ? 'Mute voice coaching' : 'Enable voice coaching'} aria-pressed={voice} onClick={() => setVoice(!voice)}>
@@ -63,7 +63,7 @@ function WorkoutSet({ id, index, list, onAdvance, onFinish, voice, setVoice, sho
         <div className="relative">
           <CameraView onStatus={setCamera} onFrameCapture={paused || saving ? undefined : tracking.sendFrame}
             landmarks={showSkeleton ? tracking.landmarks : null} activeJoints={tracking.activeJoints} />
-          {paused && <div className="camera-pause"><Pause size={27}/> Workout paused</div>}
+          {paused && <div className="camera-pause"><Pause size={27}/> Paused</div>}
         </div>
         <ol className="set-steps" aria-label="Workout sequence">{list.map((key, i) =>
           <li key={key} aria-current={i === index ? 'step' : undefined}>{i < index ? <Check size={15}/> : <span>{String(i+1).padStart(2,'0')}</span>}{exercises[key].name}</li>)}</ol>
@@ -79,14 +79,14 @@ function WorkoutSet({ id, index, list, onAdvance, onFinish, voice, setVoice, sho
         <p className="studio-caption">Rep target: {movement.target}, then return to start. Camera angles are estimates.</p>
         <button className="studio-button w-full" disabled={saving} onClick={() =>
           index + 1 < list.length ? onAdvance(record()) : dialog.current.showModal()}>
-          {saving ? 'Saving…' : index + 1 < list.length ? 'Next movement' : 'Finish session'} <ArrowRight size={18}/>
+          {saving ? 'Saving Workout…' : index + 1 < list.length ? `Next: ${exercises[list[index + 1]].name}` : 'End Workout'} <ArrowRight size={18}/>
         </button>
       </aside>
     </div>
     <dialog ref={dialog} className="finish-dialog" aria-labelledby="finish-heading">
-      <h2 id="finish-heading">End this session?</h2>
+      <h2 id="finish-heading">End Workout?</h2>
       <p>You’ll see a summary of the reps tracked so far.</p>
-      <div><button className="studio-button subtle" onClick={() => dialog.current.close()}>Keep training</button>
+      <div><button className="studio-button subtle" onClick={() => dialog.current.close()}>Continue</button>
         <button className="studio-button" onClick={() => { dialog.current.close(); onFinish(record()); }}>End session</button></div>
     </dialog>
   </>;
