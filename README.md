@@ -2,7 +2,9 @@
 
 **What we verified about the workout angles:** Reform passed 27 geometry and rep-counting checks across five exercises and four pose-service checks, including a real-person image sent through the WebSocket. Reform also counted one rep on a recorded University of Idaho deep squat. On that clip, the side-view knee angle differed from the 3D angle calculated from the same joints by **7.9° on average**, with a **38.4°** worst frame. We checked the counting targets against published exercise guidance. These results do not establish webcam accuracy across people and devices. See the [exercise targets, sources, and validation plan](docs/pose-validation.md).
 
-Reform is a webcam workout coach for squats, standard floor push-ups, single-arm bicep curls, forward lunges, jumping jacks, shoulder presses, lateral raises, and glute bridges. It estimates joint angles, counts reps in planned sets with a 3-2-1 start and rest timer, grades every rep, and offers on-screen and optional spoken cues. The skeleton turns red on the joints behind a live fault. You can train and view your history and progress without an account. Guest workouts are stored in the browser you use to train.
+Reform is a webcam workout coach for squats, standard floor push-ups, single-arm bicep curls, forward lunges, jumping jacks, shoulder presses, lateral raises, and glute bridges. It estimates joint angles, counts reps in planned sets with a 3-2-1 start and rest timer, grades every rep, and offers on-screen and optional spoken cues. The skeleton turns red on the joints behind a live fault.
+
+Workouts are hands-free once the camera check starts: the camera fills the screen, the workout begins by itself when you hold the start position, each set starts after a 3-2-1 once you're back in view, rest counts down, and the app moves on to the next exercise and then the summary. Optional voice commands (Chrome, Edge and Safari) let you say *pause*, *resume*, *skip*, *next* or *stop*. You can train and view your history and progress without an account. Guest workouts are stored in the browser you use to train.
 
 ## Run locally
 

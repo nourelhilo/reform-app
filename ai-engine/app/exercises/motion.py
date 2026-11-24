@@ -23,6 +23,9 @@ class Motion:
 #   control 20  full marks at a controlled pace, half marks at the minimum duration
 #   faults  40  each fault costs points in proportion to the share of the rep it was seen
 RANGE_POINTS, CONTROL_POINTS, FAULT_POINTS = 40, 20, 40
+# The live service answers ~4 times a second with occasional slow replies; a gap
+# longer than this means the person left the frame, so the rep in progress is dropped.
+MAX_GAP = 1.2
 GRADES = ((90, "A"), (80, "B"), (65, "C"), (0, "D"))
 SLOW_DOWN = "Slow down and control the movement."
 GO_FURTHER = {False: "Good rep. Go a little deeper next time.", True: "Good rep. Reach a little further next time."}
@@ -94,7 +97,7 @@ class RepCycle:
 
     def analyze(self, motion, now=None):
         now = monotonic() if now is None else now
-        if self.last_frame is not None and now - self.last_frame > 0.75:
+        if self.last_frame is not None and now - self.last_frame > MAX_GAP:
             self.interrupt()
         self.last_frame = now
         cues = tuple(cue for cue, _ in motion.issues)

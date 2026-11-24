@@ -32,6 +32,7 @@ def pose(exercise, angle, *, aspect=16/9, spread=None, other_arm=None, mirror=Fa
             put(W[i], x+.16*sin(theta), y+.15-.16*cos(theta))
             if exercise == "pushup":
                 put(H[i], x+.27, y+.02)
+                put(K[i], x+.43, y+.06)
                 put(A[i], x+.58, y+.10)
             else:
                 put(H[i], x, .56)
@@ -84,7 +85,7 @@ def test_one_full_rep_at_measured_angles(name, angles, aspect, mirror):
     ("pushup", [175, 135, 107, 130, 175]),
     ("curl", [175, 135, 65, 130, 175]),
     ("lunge", [175, 135, 108, 130, 175]),
-    ("jumping_jack", [10, 90, 137, 90, 10]),
+    ("jumping_jack", [10, 90, 118, 90, 10]),
 ])
 def test_partial_rom_is_not_counted(name, angles):
     tracker = ExerciseTracker(name)
@@ -94,7 +95,7 @@ def test_partial_rom_is_not_counted(name, angles):
     assert "Range target missed" in result["feedback"]
 
 
-def test_bottom_start_occlusion_and_pause_never_complete_unobserved_rep():
+def test_bottom_start_pause_and_long_gap_never_complete_unobserved_rep():
     for interruption in ("occlusion", "pause", "gap"):
         tracker = ExerciseTracker("squat")
         def frame(angle, t, hidden=False):
@@ -108,10 +109,12 @@ def test_bottom_start_occlusion_and_pause_never_complete_unobserved_rep():
         frame(132, .6)
         frame(85, .9)
         if interruption == "occlusion":
+            # One hidden frame mid-rep no longer drops a rep whose bottom was seen.
             assert frame(130, 1.05, hidden=True) is None
         elif interruption == "pause":
             tracker.interrupt()
-        assert frame(175, 1.8 if interruption == "gap" else 1.23)["rep"] == 0
+        expected = 1 if interruption == "occlusion" else 0
+        assert frame(175, 2.3 if interruption == "gap" else 1.23)["rep"] == expected
 
 
 def test_jacks_need_both_arms_and_feet_to_close():

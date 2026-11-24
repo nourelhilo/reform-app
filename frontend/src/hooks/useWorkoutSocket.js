@@ -4,22 +4,23 @@ const defaultSocket = window.location.protocol === 'https:'
   ? `wss://${window.location.host}/ws/workout`
   : 'ws://localhost:8000/ws/workout';
 const AI_WS_URL = import.meta.env.VITE_AI_ENGINE_WS_URL || defaultSocket;
+const MAX_IN_FLIGHT = 2;
 const waiting = {
   phase: 'idle', confidence: 0, activeJoints: [], faultJoints: [], landmarks: null, exerciseMetrics: {},
   visibility: { status: 'waiting', is_valid: false, message: 'Waiting for the camera.' },
 };
 
-export function useWorkoutSocket(exercise, { paused = false, voice = false, voiceCooldown = 3 } = {}) {
+export function useWorkoutSocket(exercise, { paused = false, voice = false, voiceCooldown = 3, ignoreReps = false } = {}) {
   const [frame, setFrame] = useState(waiting);
   const [connection, setConnection] = useState('connecting');
   const [reps, setReps] = useState([]);
   const [readyFrames, setReadyFrames] = useState(0);
   const socket = useRef(null);
-  const inFlight = useRef(false);
+  const inFlight = useRef(0);
   const armDeadline = useRef(null);
-  const mode = useRef({ paused, voice, voiceCooldown });
+  const mode = useRef({ paused, voice, voiceCooldown, ignoreReps });
   const lastSpoken = useRef(-Infinity);
-  mode.current = { paused, voice, voiceCooldown };
+  mode.current = { paused, voice, voiceCooldown, ignoreReps };
 
   useEffect(() => {
     let stopped = false;
@@ -41,11 +42,13 @@ export function useWorkoutSocket(exercise, { paused = false, voice = false, voic
       ws.onmessage = ({ data }) => {
         if (stopped) return;
         clearTimeout(timeout);
-        inFlight.current = false;
+        inFlight.current = Math.max(0, inFlight.current - 1);
+        if (inFlight.current) armDeadline.current?.();
         let result;
         try { result = JSON.parse(data); } catch { return; }
         if (result.exercise !== exercise || !result.visibility) return;
-        if (result.repCompleted && result.lastRepDetail) {
+        // During a countdown or rest the camera keeps tracking position, but reps don't count.
+        if (result.repCompleted && result.lastRepDetail && !mode.current.ignoreReps) {
           setReps(history => [...history, { ...result.lastRepDetail, repNumber: history.length + 1 }]);
         }
         if (mode.current.paused) return;
@@ -57,7 +60,7 @@ export function useWorkoutSocket(exercise, { paused = false, voice = false, voic
           setFrame(waiting);
         }, 1100);
         const now = performance.now();
-        if (mode.current.voice && result.speechCue && window.speechSynthesis &&
+        if (mode.current.voice && !mode.current.ignoreReps && result.speechCue && window.speechSynthesis &&
             now - lastSpoken.current >= mode.current.voiceCooldown * 1000) {
           lastSpoken.current = now;
           window.speechSynthesis.speak(new SpeechSynthesisUtterance(result.speechCue));
@@ -68,13 +71,14 @@ export function useWorkoutSocket(exercise, { paused = false, voice = false, voic
         if (stopped) return;
         clearTimeout(timeout);
         clearTimeout(stale);
-        inFlight.current = false;
+        inFlight.current = 0;
         setConnection('offline');
         setFrame(waiting);
         setReadyFrames(0);
         retry = setTimeout(open, 2500);
       };
       armDeadline.current = () => {
+        clearTimeout(timeout);
         timeout = setTimeout(() => ws.close(), 5000);
       };
     };
@@ -87,7 +91,7 @@ export function useWorkoutSocket(exercise, { paused = false, voice = false, voic
       clearTimeout(retry);
       clearTimeout(timeout);
       clearTimeout(stale);
-      inFlight.current = false;
+      inFlight.current = 0;
       armDeadline.current = null;
       socket.current = null;
       ws?.close();
@@ -106,15 +110,22 @@ export function useWorkoutSocket(exercise, { paused = false, voice = false, voic
     }
   }, [paused, voice]);
 
-  // Allow one frame in flight; discard obsolete frames rather than queue them.
+  // Keep two frames in flight so the server is never idle waiting for the
+  // network (~4 → ~7 frames a second on the live service). Extra frames are
+  // dropped rather than queued, so feedback never lags behind the camera.
   const sendFrame = useCallback((blob) => {
     if (mode.current.paused || socket.current?.readyState !== WebSocket.OPEN) return;
-    if (inFlight.current || !armDeadline.current) return;
+    if (inFlight.current >= MAX_IN_FLIGHT || !armDeadline.current) return;
     socket.current.send(blob);
     armDeadline.current();
-    inFlight.current = true;
+    inFlight.current += 1;
+  }, []);
+
+  // Drop any rep the server has half-tracked, e.g. when a set starts after a countdown.
+  const interrupt = useCallback(() => {
+    if (socket.current?.readyState === WebSocket.OPEN) socket.current.send(JSON.stringify({ type: 'pause' }));
   }, []);
 
   const formScore = reps.length ? Math.round(reps.reduce((sum, rep) => sum + rep.formScore, 0) / reps.length) : null;
-  return { ...frame, connection, readyFrames, sendFrame, reps, formScore };
+  return { ...frame, connection, readyFrames, sendFrame, interrupt, reps, formScore };
 }

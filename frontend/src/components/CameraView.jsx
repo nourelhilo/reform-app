@@ -17,7 +17,7 @@ export function CameraView({ landmarks, activeJoints, faultJoints, onFrameCaptur
     async function open() {
       try {
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: { ideal: 960 }, height: { ideal: 720 }, facingMode: 'user' }, audio: false,
+          video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' }, audio: false,
         });
         if (ended) {
           stream.getTracks().forEach(track => track.stop());
@@ -52,7 +52,8 @@ export function CameraView({ landmarks, activeJoints, faultJoints, onFrameCaptur
     const timer = setInterval(() => {
       const source = video.current;
       if (encoding || !source?.videoWidth || source.readyState < 2) return;
-      const scale = Math.min(1, 640 / Math.max(source.videoWidth, source.videoHeight));
+      // 480 px is plenty for the pose model (it works at 256 px) and uploads faster.
+      const scale = Math.min(1, 480 / Math.max(source.videoWidth, source.videoHeight));
       const w = Math.round(source.videoWidth * scale);
       const h = Math.round(source.videoHeight * scale);
       if (w !== surface.width || h !== surface.height) {
@@ -65,7 +66,7 @@ export function CameraView({ landmarks, activeJoints, faultJoints, onFrameCaptur
       surface.toBlob(blob => {
         encoding = false;
         if (active && blob) onFrameCapture(blob);
-      }, 'image/jpeg', .72);
+      }, 'image/jpeg', .65);
     }, 1000 / targetFps);
     return () => { active = false; clearInterval(timer); };
   }, [state, onFrameCapture, targetFps]);

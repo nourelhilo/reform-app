@@ -2,7 +2,8 @@
 from math import hypot, isfinite
 from app.analysis.angles import calculate_angle_2d, calculate_vertical_angle
 from app.pose.landmarks import PoseLandmark as P
-from app.exercises.motion import Motion, RepCycle
+from time import monotonic
+from app.exercises.motion import MAX_GAP, Motion, RepCycle
 
 S, E, W, H, K, A, HEEL, TOE = (
     (P.LEFT_SHOULDER, P.RIGHT_SHOULDER), (P.LEFT_ELBOW, P.RIGHT_ELBOW),
@@ -16,10 +17,10 @@ S, E, W, H, K, A, HEEL, TOE = (
 # For "low" exercises the angle falls toward the target; for HIGH_PEAK ones it rises.
 RULES = {
     "squat": (165, 150, 95, 0.55, ("standing", "descending", "bottom", "ascending")),
-    "pushup": (160, 145, 95, 0.45, ("plank", "descending", "bottom", "ascending")),
+    "pushup": (160, 145, 100, 0.45, ("plank", "descending", "bottom", "ascending")),
     "curl": (160, 145, 55, 0.45, ("extended", "curling", "peak", "lowering")),
     "lunge": (160, 145, 95, 0.60, ("standing", "descending", "bottom", "ascending")),
-    "jumping_jack": (35, 55, 150, 0.24, ("closed", "opening", "open", "closing")),
+    "jumping_jack": (35, 55, 130, 0.34, ("closed", "opening", "open", "closing")),
     "shoulder_press": (105, 120, 155, 0.45, ("racked", "pressing", "lockout", "lowering")),
     "lateral_raise": (30, 45, 80, 0.45, ("down", "raising", "top", "lowering")),
     "glute_bridge": (140, 150, 165, 0.45, ("down", "lifting", "top", "lowering")),
@@ -82,8 +83,9 @@ class ExerciseTracker:
     def __init__(self, exercise):
         self.exercise = exercise
         self.home, self.trigger, self.target, duration, phases = RULES[exercise]
-        self.cycle = RepCycle(phases, duration, high_peak=exercise in HIGH_PEAK,
-                              target=self.target, ideal=IDEAL[exercise])
+        # Fast moves only get 2-3 frames per rep at the live service's frame rate.
+        self.cycle = RepCycle(phases, duration, min_frames=2 if exercise == "jumping_jack" else 3,
+                              high_peak=exercise in HIGH_PEAK, target=self.target, ideal=IDEAL[exercise])
         self.side = self.lead = None
 
     def interrupt(self):
@@ -102,7 +104,13 @@ class ExerciseTracker:
         except ValueError:
             motion = None
         if motion is None:
-            self.interrupt()
+            # A joint can drop out for a frame or two (hands above the frame, a
+            # flickering ankle). Keep the rep in progress; the cycle drops it
+            # only if tracking stays lost longer than MAX_GAP.
+            last = self.cycle.last_frame
+            current = now if now is not None else monotonic()
+            if last is None or current - last > MAX_GAP:
+                self.interrupt()
             return None, 0.0
         result = self.cycle.analyze(motion, now)
         if self.cycle.started is None:
@@ -128,9 +136,10 @@ class ExerciseTracker:
         return self.side, candidates[self.side]
 
     def side_motion(self, p):
+        if self.exercise == "pushup":
+            return self.pushup(p)
         groups = {
             "squat": (S, H, K, A),
-            "pushup": (S, E, W, H, A),
             "curl": (S, E, W, H),
         }[self.exercise]
         i, joints = self.pick_side(p, groups)
@@ -146,23 +155,34 @@ class ExerciseTracker:
             issues = (("Keep your chest up.", (S[i], H[i])),) if torso > 65 else ()
             return self.bend(angle, joints, {"kneeAngle": round(angle, 1)}, issues)
         angle = p.angle(S[i], E[i], W[i])
-        if self.exercise == "pushup":
-            if abs(p.dx(S[i], A[i])) < p.distance(S[i], A[i]) * 0.70:
-                return None
-            issues = ()
-            if p.angle(S[i], H[i], A[i]) < 155:
-                # Image y grows downward: a hip below the shoulder–ankle line is sagging.
-                (sx, sy), (hx, hy), (ax, ay) = p.point(S[i]), p.point(H[i]), p.point(A[i])
-                line_y = sy + (ay - sy) * (hx - sx) / (ax - sx) if ax != sx else sy
-                cue = "Lift your hips so they don't sag." if hy > line_y else "Lower your hips into one line."
-                issues = ((cue, (S[i], H[i], A[i])),)
-            return self.bend(angle, joints, {"elbowAngle": round(angle, 1)}, issues)
         issues = []
         if p.angle(H[i], S[i], E[i]) > 30:
             issues.append(("Keep your upper arm close to your side.", (S[i], E[i])))
         if torso > 15:
             issues.append(("Keep your torso still. Avoid swinging.", (S[i], H[i])))
         return self.bend(angle, joints, {"elbowAngle": round(angle, 1)}, tuple(issues))
+
+    def pushup(self, p):
+        # Laptop cameras often clip or blur the feet, so the body line falls back
+        # to the knee when the ankle isn't clear. The side is re-picked per frame.
+        def option(i):
+            end = A[i] if p.visible((A[i],)) else K[i]
+            return i, end, (S[i], E[i], W[i], H[i], end)
+        options = [option(i) for i in range(2)]
+        i, end, joints = max(options, key=lambda o: min(map(p.confidence, o[2])))
+        if not p.visible(joints):
+            return None
+        if abs(p.dx(S[i], end)) < p.distance(S[i], end) * 0.60:
+            return None
+        angle = p.angle(S[i], E[i], W[i])
+        issues = ()
+        if p.angle(S[i], H[i], end) < 155:
+            # Image y grows downward: a hip below the shoulder–foot line is sagging.
+            (sx, sy), (hx, hy), (ax, ay) = p.point(S[i]), p.point(H[i]), p.point(end)
+            line_y = sy + (ay - sy) * (hx - sx) / (ax - sx) if ax != sx else sy
+            cue = "Lift your hips so they don't sag." if hy > line_y else "Lower your hips into one line."
+            issues = ((cue, (S[i], H[i], end)),)
+        return self.bend(angle, joints, {"elbowAngle": round(angle, 1)}, issues)
 
     def lunge(self, p):
         joints = S + H + K + A
@@ -191,20 +211,26 @@ class ExerciseTracker:
                          issues, home=home, target=split and self.lead is not None, moving=split)
 
     def jack(self, p):
-        joints = S + H + E + W + A
+        # Hands often leave the top of the frame on a jack, so wrists are optional;
+        # elbows above the shoulders count as arms overhead.
+        joints = S + H + E + A
         if not p.visible(joints):
             return None
+        wrists = p.visible(W)
+        if wrists:
+            joints += W
         width = abs(p.dx(*S))
         if width < 0.5 * max(p.distance(S[i], H[i]) for i in range(2)):
             return None
         ratio = abs(p.dx(*A)) / width
         arms = [p.angle(H[i], S[i], E[i]) for i in range(2)]
         angle = min(arms)
-        overhead = all(p.point(W[i])[1] < p.point(S[i])[1] for i in range(2))
-        issues = (("Raise both arms together.", S + E + W),) if abs(arms[0] - arms[1]) > 25 else ()
-        return Motion(angle, max(arms) <= self.home and ratio <= 1.10,
-                      max(arms) >= self.trigger or ratio >= 1.35,
-                      angle >= self.target and overhead and ratio >= 1.45,
+        tip = W if wrists else E
+        overhead = all(p.point(tip[i])[1] < p.point(S[i])[1] for i in range(2))
+        issues = (("Raise both arms together.", S + E),) if abs(arms[0] - arms[1]) > 25 else ()
+        return Motion(angle, max(arms) <= self.home and ratio <= 1.15,
+                      max(arms) >= self.trigger or ratio >= 1.30,
+                      angle >= self.target and overhead and ratio >= 1.30,
                       angle < 135, joints, {"armElevation": round(angle, 1), "stanceRatio": round(ratio, 2)}, issues)
 
     def press(self, p):

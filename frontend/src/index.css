@@ -77,7 +77,7 @@ a,button{touch-action:manipulation}
 .setup-plan>p:not(.studio-caption){margin:16px 0}
 .studio-caption{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:var(--dim);line-height:1.48;margin-top:13px}
 .camera-stage{display:grid;place-items:center;position:relative;overflow:hidden;aspect-ratio:16/10;background:radial-gradient(ellipse at center,#352946,#21182d 70%);border:1px solid var(--line);border-radius:23px}
-.camera-video,.camera-skeleton{width:100%;height:100%;position:absolute;inset:0;object-fit:contain}
+.camera-video,.camera-skeleton{width:100%;height:100%;position:absolute;inset:0;object-fit:cover}
 .camera-video{transform:scaleX(-1)}
 .camera-skeleton{pointer-events:none}
 .camera-badge{position:absolute;top:13px;left:13px;display:flex;align-items:center;gap:7px;padding:7px 9px;border:1px solid #ffffff56;border-radius:7px;background:#21182dda;color:#fffaf2;font-size:12px}
@@ -182,3 +182,35 @@ a,button{touch-action:manipulation}
 .rep-grade b[data-grade=C]{background:#fde7b5}.rep-grade b[data-grade=D]{background:#ffd3da}
 .rep-grade p{font-size:13px;line-height:1.45;color:var(--dim)}
 .set-progress{font:650 12px ui-monospace,monospace;color:var(--dim);letter-spacing:.05em}
+
+/* Full-screen camera for the camera check and workout: the video fills the
+   viewport (cropped, never letterboxed) and the controls float on top. */
+.fs-stage{position:fixed;inset:0;z-index:60;background:#120d18;color:#fffaf2;overflow:hidden}
+.fs-stage .camera-stage{position:absolute;inset:0;aspect-ratio:auto;border:0;border-radius:0;background:#120d18}
+.fs-stage .camera-badge{display:none}
+.fs-stage .camera-pause,.fs-stage .camera-overlay{border-radius:0;z-index:2}
+.camera-overlay.soft{background:linear-gradient(#21182d66,#21182d99)}
+.camera-overlay b{font-size:clamp(28px,5vw,46px);font-weight:800;letter-spacing:-.03em}
+.camera-overlay strong.small{font-size:54px}
+.hud-top{position:absolute;top:0;left:0;right:0;z-index:3;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+  padding:max(14px,env(safe-area-inset-top)) 18px 40px;background:linear-gradient(#0b0810cc,#0b081000)}
+.hud-top h1{font-size:clamp(24px,3.4vw,38px);font-weight:820;letter-spacing:-.045em;line-height:1.05;margin:2px 0 0}
+.hud-kicker{font:650 11px ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;opacity:.8}
+.hud-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:650;color:#fffaf2;padding:8px 11px;border-radius:9px;background:#ffffff1f}
+.fs-stage .training-time{color:#fffaf2}
+.hud-button{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:#ffffff26;color:#fffaf2;border:1px solid #ffffff33;backdrop-filter:blur(6px)}
+.hud-button:hover:not(:disabled){background:#ffffff40}.hud-button:disabled{opacity:.45}
+.hud-button[aria-pressed=true]{background:#e9d0ff;color:#36224a}
+.hud-panel{position:absolute;z-index:3;right:18px;bottom:18px;width:min(330px,calc(100% - 36px));max-height:calc(100% - 120px);overflow:auto;
+  padding:16px 18px;border-radius:20px;background:#fffaf3eb;color:var(--text);box-shadow:0 12px 40px #0006;backdrop-filter:blur(10px)}
+.hud-panel h2{font-weight:770;letter-spacing:-.05em;font-size:24px;margin:6px 0}
+.hud-panel .live-count{padding:4px 0 8px}.hud-panel .live-count strong{font-size:54px}
+.hud-panel .camera-checks{margin:12px 0}
+.hud-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.hud-cue{font-size:13px;line-height:1.5;color:#463952;margin:10px 0 0}
+.hud-mic{font:600 11px ui-monospace,monospace;color:#6b5a7d;margin-top:8px}
+@media(max-width:680px){
+  .hud-panel{left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));width:auto;padding:12px 14px;max-height:42%}
+  .hud-panel .live-count strong{font-size:40px}.hud-panel .live-metrics,.hud-panel .camera-checks{display:none}
+  .hud-top{padding-left:12px;padding-right:12px}.hud-button{width:38px;height:38px}
+}
