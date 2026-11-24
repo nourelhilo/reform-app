@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { api } from '../services/api';
+import { exerciseName } from '../services/exercises';
 import { BarChart3, TrendingUp, Repeat2, Clock, Star, Loader2, Info, Activity } from 'lucide-react';
 
-const EXERCISE_LABELS = {
-  squat: 'Squat', pushup: 'Push-Up', curl: 'Bicep Curl',
-  lunge: 'Lunge', jumping_jack: 'Jumping Jack',
-};
 
 const METRIC_COLORS = ['#663da6', '#22c55e', '#f59e0b', '#3b82f6', '#ef4444'];
 
@@ -164,7 +161,7 @@ export const Analytics = () => {
                   .map((ex, i) => (
                     <div key={ex.exercise} className="flex items-center gap-4">
                       <div className="w-28 flex-shrink-0">
-                        <p className="text-xs font-medium text-text-primary">{EXERCISE_LABELS[ex.exercise] || ex.exercise}</p>
+                        <p className="text-xs font-medium text-text-primary">{exerciseName(ex.exercise)}</p>
                         <p className="text-[11px] text-text-muted">{ex.totalReps} reps • {ex.sessionCount} sessions</p>
                       </div>
                       <div className="flex-1 bg-elevated rounded-full h-2">

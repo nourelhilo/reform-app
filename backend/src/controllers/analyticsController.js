@@ -1,4 +1,5 @@
 const Workout = require('../models/Workout');
+const { EXERCISES } = require('../config/exercises');
 
 // @desc    Get dashboard summary metrics and weekly trends
 // @route   GET /api/analytics/dashboard
@@ -87,13 +88,7 @@ const getProgressAnalytics = async (req, res, next) => {
     }
 
     // Exercise breakdown
-    const exerciseStats = {
-      squat: { count: 0, reps: 0, scores: [] },
-      pushup: { count: 0, reps: 0, scores: [] },
-      curl: { count: 0, reps: 0, scores: [] },
-      lunge: { count: 0, reps: 0, scores: [] },
-      jumping_jack: { count: 0, reps: 0, scores: [] },
-    };
+    const exerciseStats = Object.fromEntries(EXERCISES.map(name => [name, { count: 0, reps: 0, scores: [] }]));
 
     workouts.forEach(w => {
       w.exercises?.forEach(ex => {

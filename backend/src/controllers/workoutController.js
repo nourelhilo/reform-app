@@ -1,6 +1,30 @@
 const Workout = require('../models/Workout');
 
-const exerciseNames = new Set(['squat', 'pushup', 'curl', 'lunge', 'jumping_jack']);
+const { EXERCISES } = require('../config/exercises');
+
+const exerciseNames = new Set(EXERCISES);
+const GRADES = new Set(['A', 'B', 'C', 'D']);
+const num = value => (Number.isFinite(Number(value)) && value !== null && value !== '' ? Number(value) : undefined);
+const cues = (list, max) => (Array.isArray(list) ? list.filter(item => typeof item === 'string').map(item => item.slice(0, 160)).slice(0, max) : []);
+
+function cleanRep(rep) {
+  return {
+    repNumber: num(rep.repNumber), durationSeconds: num(rep.durationSeconds), formScore: num(rep.formScore),
+    maxRomAngle: num(rep.maxRomAngle), grade: GRADES.has(rep.grade) ? rep.grade : undefined,
+    rangeScore: num(rep.rangeScore), controlScore: num(rep.controlScore), faultScore: num(rep.faultScore),
+    faults: Array.isArray(rep.faults) ? rep.faults.slice(0, 10)
+      .filter(fault => typeof fault?.cue === 'string')
+      .map(fault => ({ cue: fault.cue.slice(0, 160), share: num(fault.share) })) : [],
+    feedbackGiven: cues(rep.feedbackGiven, 10),
+  };
+}
+
+function cleanSets(sets) {
+  if (!Array.isArray(sets)) return [];
+  return sets.slice(0, 20).map(set => ({
+    setNumber: num(set?.setNumber), reps: num(set?.reps), averageFormScore: num(set?.averageFormScore),
+  })).filter(set => set.reps !== undefined && set.reps >= 0);
+}
 const validScore = value => Number.isFinite(Number(value)) && value != null &&
   Number(value) >= 0 && Number(value) <= 100;
 const nonnegative = value => Number.isFinite(Number(value)) && Number(value) >= 0;
@@ -44,11 +68,10 @@ async function saveWorkout(req, res, next) {
       // Keep only known fields so arbitrary client data isn't stored.
       exercises: exercises.map(exercise => ({
         exerciseName: exercise.exerciseName,
-        reps: (exercise.reps || []).map(({ repNumber, durationSeconds, formScore, maxRomAngle, feedbackGiven }) =>
-          ({ repNumber, durationSeconds, formScore, maxRomAngle,
-            feedbackGiven: Array.isArray(feedbackGiven) ? feedbackGiven.filter(f => typeof f === 'string').slice(0, 10) : [] })),
-        keyFeedback: Array.isArray(exercise.keyFeedback)
-          ? exercise.keyFeedback.filter(f => typeof f === 'string').slice(0, 20) : [],
+        reps: (exercise.reps || []).map(cleanRep),
+        sets: cleanSets(exercise.sets),
+        plannedSets: num(exercise.plannedSets), repsPerSet: num(exercise.repsPerSet),
+        keyFeedback: cues(exercise.keyFeedback, 20),
         totalReps: Number(exercise.totalReps ?? 0), validReps: Number(exercise.validReps ?? 0),
         durationSeconds: Number(exercise.durationSeconds ?? 0), averageFormScore: Number(exercise.averageFormScore),
       })),

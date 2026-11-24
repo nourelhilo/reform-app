@@ -12,19 +12,19 @@ export function CameraCalibration() {
   const navigate = useNavigate();
   const list = getExerciseList(location.state?.exercises);
   const [camera, setCamera] = useState('requesting');
-  const { readyFrames, connection, visibility, landmarks, activeJoints, sendFrame } = useWorkoutSocket(list[0]);
+  const { readyFrames, connection, visibility, landmarks, activeJoints, faultJoints, sendFrame } = useWorkoutSocket(list[0]);
   const exercise = exercises[list[0]];
   const ready = camera === 'ready' && connection === 'connected' && readyFrames >= 3;
 
   return <div className="studio-wrap">
-    <Link to="/workout/setup" state={{ exercises: list }} className="studio-back"><ArrowLeft size={16}/> Change exercises</Link>
+    <Link to="/workout/setup" state={{ exercises: list, plan: location.state?.plan }} className="studio-back"><ArrowLeft size={16}/> Change exercises</Link>
     <div className="studio-heading">
       <div className="studio-kicker">Setup</div>
       <h1>Camera Check</h1>
     </div>
     <div className="studio-layout camera-layout">
       <div><CameraView onStatus={setCamera} onFrameCapture={sendFrame} targetFps={6}
-        landmarks={mongoUser?.preferences?.showSkeletonOverlay !== false ? landmarks : null} activeJoints={activeJoints}/></div>
+        landmarks={mongoUser?.preferences?.showSkeletonOverlay !== false ? landmarks : null} activeJoints={activeJoints} faultJoints={faultJoints}/></div>
       <aside className="studio-panel camera-instructions">
         <div className="studio-kicker">{exercise.view.toUpperCase()}</div>
         <h2>{exercise.name}</h2>
@@ -37,7 +37,7 @@ export function CameraCalibration() {
           {connection === 'offline' ? <WifiOff size={16}/> : <ScanLine size={16}/>}
           {connection === 'offline' ? 'Tracking is offline. Reconnecting…' : ready ? 'Tracking stable' : camera === 'ready' && connection === 'connected' ? visibility.message : 'Waiting for detection…'}
         </div>
-        <button className="studio-button w-full" disabled={!ready} onClick={() => navigate('/workout/active', { state: { exercises: list } })}>
+        <button className="studio-button w-full" disabled={!ready} onClick={() => navigate('/workout/active', { state: { exercises: list, plan: location.state?.plan } })}>
           Start Workout <ArrowRight size={18}/>
         </button>
         <p className="studio-caption"><Camera size={15}/> Camera frames are sent to the pose tracking service during setup and training.</p>

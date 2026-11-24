@@ -5,7 +5,7 @@ const defaultSocket = window.location.protocol === 'https:'
   : 'ws://localhost:8000/ws/workout';
 const AI_WS_URL = import.meta.env.VITE_AI_ENGINE_WS_URL || defaultSocket;
 const waiting = {
-  phase: 'idle', confidence: 0, activeJoints: [], landmarks: null, exerciseMetrics: {},
+  phase: 'idle', confidence: 0, activeJoints: [], faultJoints: [], landmarks: null, exerciseMetrics: {},
   visibility: { status: 'waiting', is_valid: false, message: 'Waiting for the camera.' },
 };
 

@@ -1,10 +1,11 @@
+const { EXERCISES } = require('../config/exercises');
 const db = require('../config/db');
 
 const defaultPreferences = {
   voiceCoaching: false,
   soundEffects: true,
   units: 'metric',
-  preferredExercises: ['squat', 'pushup', 'curl', 'lunge', 'jumping_jack'],
+  preferredExercises: EXERCISES,
   cameraIndex: 0,
   showSkeletonOverlay: true,
   devOverlay: false,

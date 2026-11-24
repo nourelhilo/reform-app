@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { api } from '../services/api';
+import { exerciseName } from '../services/exercises';
 import { Clock, Repeat2, Star, BarChart3, Loader2, Info } from 'lucide-react';
 
 const formatDate = (iso) => {
@@ -17,10 +18,6 @@ const formatDuration = (secs) => {
   return `${m}:${s}`;
 };
 
-const EXERCISE_LABELS = {
-  squat: 'Squats', pushup: 'Push-Ups', curl: 'Curls',
-  lunge: 'Lunges', jumping_jack: 'Jumping Jacks',
-};
 
 export const History = () => {
   const { user, loading: authLoading } = useAuth();
@@ -117,7 +114,7 @@ export const History = () => {
                 <div className="border-t border-border-subtle pt-4 flex flex-wrap gap-2">
                   {w.exercises.map((ex, i) => (
                     <span key={i} className="text-xs bg-elevated border border-border-subtle text-text-muted rounded-lg px-3 py-1 font-mono">
-                      {EXERCISE_LABELS[ex.exerciseName] || ex.exerciseName} — {ex.totalReps}r
+                      {exerciseName(ex.exerciseName)} — {ex.totalReps}r
                     </span>
                   ))}
                 </div>

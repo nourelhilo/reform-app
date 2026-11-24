@@ -2,7 +2,7 @@
 
 **What we verified about the workout angles:** Reform passed 27 geometry and rep-counting checks across five exercises and four pose-service checks, including a real-person image sent through the WebSocket. Reform also counted one rep on a recorded University of Idaho deep squat. On that clip, the side-view knee angle differed from the 3D angle calculated from the same joints by **7.9° on average**, with a **38.4°** worst frame. We checked the counting targets against published exercise guidance. These results do not establish webcam accuracy across people and devices. See the [exercise targets, sources, and validation plan](docs/pose-validation.md).
 
-Reform is a webcam workout coach for squats, standard floor push-ups, single-arm bicep curls, forward lunges, and jumping jacks. It estimates joint angles, counts reps, and offers on-screen and optional spoken cues. You can train and view your history and progress without an account. Guest workouts are stored in the browser you use to train.
+Reform is a webcam workout coach for squats, standard floor push-ups, single-arm bicep curls, forward lunges, jumping jacks, shoulder presses, lateral raises, and glute bridges. It estimates joint angles, counts reps in planned sets with a 3-2-1 start and rest timer, grades every rep, and offers on-screen and optional spoken cues. The skeleton turns red on the joints behind a live fault. You can train and view your history and progress without an account. Guest workouts are stored in the browser you use to train.
 
 ## Run locally
 
@@ -46,7 +46,13 @@ flowchart LR
     D -->|Signed-in session| E["REST API and workout history"]
 ```
 
-Reform counts a rep once it sees the starting position, the range target, and the return. A pause, missing joint, or tracking gap interrupts the unfinished rep. Reform reads a straight knee or elbow as 180°; many studies call this 0° of flexion. The form score summarizes the configured visual cues, so 100% does not certify exercise form. Older sessions were scored using different rules.
+Reform counts a rep once it sees the starting position, the range target, and the return. A pause, missing joint, or tracking gap interrupts the unfinished rep. Reform reads a straight knee or elbow as 180°; many studies call this 0° of flexion. Each counted rep gets a score out of 100 and a grade (A ≥ 90, B ≥ 80, C ≥ 65, D below):
+
+- **Range (40):** reaching the counted target earns 28; reaching the fuller ideal range earns all 40.
+- **Control (20):** half marks at the minimum rep duration, full marks at twice that.
+- **Faults (40):** each fault costs points in proportion to how much of the rep it was seen (for example a sagging hip in a push-up or uneven arms in a lateral raise).
+
+The score summarizes these camera estimates, so 100% does not certify exercise form. Sessions saved before rule version 3 were scored with older rules.
 
 The experimental exercise classifier is disabled during workouts. Its score at `/api/evaluation` describes performance on synthetic training data.
 

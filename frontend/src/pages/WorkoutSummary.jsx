@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { ArrowRight, RotateCcw } from 'lucide-react';
-import { exercises } from '../services/exercises';
+import { exercises, gradeFor } from '../services/exercises';
 import { api } from '../services/api';
 import { guestWorkouts } from '../services/guestWorkouts';
 import { useAuth } from '../hooks/useAuth';
@@ -50,8 +50,13 @@ export function WorkoutSummary() {
     <section className="studio-panel">
       <h2>Movement Quality</h2>
       <ul className="summary-list">{data.exercises.map(ex => <li key={ex.exerciseName}>
-        <strong>{exercises[ex.exerciseName]?.name || ex.exerciseName}</strong>
-        <span>{ex.totalReps} {ex.totalReps === 1 ? 'rep' : 'reps'} · {ex.totalReps ? ex.averageFormScore + '% estimate' : 'No estimate'}</span>
+        <div className="rep-grade">
+          {ex.totalReps > 0 && <b data-grade={gradeFor(ex.averageFormScore)}>{gradeFor(ex.averageFormScore)}</b>}
+          <p><strong>{exercises[ex.exerciseName]?.name || ex.exerciseName}</strong><br/>
+            {ex.totalReps} {ex.totalReps === 1 ? 'rep' : 'reps'} · {ex.totalReps ? ex.averageFormScore + '% estimate' : 'No estimate'}
+            {ex.sets?.length > 0 && <> · sets {ex.sets.map(set => set.reps).join(' / ')}</>}
+            {ex.keyFeedback?.length > 0 && <><br/>Focus next time: {ex.keyFeedback[0]}</>}</p>
+        </div>
       </li>)}</ul>
       <p className="studio-caption" role="status">{note}</p>
       {saveStatus === 'failed' && <div className="summary-actions">

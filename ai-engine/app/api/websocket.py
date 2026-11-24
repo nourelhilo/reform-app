@@ -77,7 +77,7 @@ class WorkoutSessionManager:
             "exercise": self.exercise, "rep": self.tracker.cycle.rep_count, "phase": "idle",
             "formScore": self.tracker.cycle.form_score, "instantScore": None,
             "confidence": 0, "feedback": message, "speechCue": None,
-            "repCompleted": False, "lastRepDetail": None, "activeJoints": [],
+            "repCompleted": False, "lastRepDetail": None, "activeJoints": [], "faultJoints": [],
             "exerciseMetrics": {}, "landmarks": None,
             "visibility": {"status": status, "is_valid": False,
                            "message": message, "overall_confidence": 0},

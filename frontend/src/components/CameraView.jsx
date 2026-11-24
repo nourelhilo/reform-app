@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { SkeletonOverlay } from './SkeletonOverlay';
 import { Camera, CameraOff, ScanLine } from 'lucide-react';
 
-export function CameraView({ landmarks, activeJoints, onFrameCapture, onStatus, targetFps = 16 }) {
+export function CameraView({ landmarks, activeJoints, faultJoints, onFrameCapture, onStatus, targetFps = 16 }) {
   const video = useRef(null);
   const canvas = useRef(null);
   const [state, setState] = useState('requesting');
@@ -73,7 +73,7 @@ export function CameraView({ landmarks, activeJoints, onFrameCapture, onStatus, 
   return <div className="camera-stage">
     <canvas ref={canvas} className="hidden" width="640" height="480" />
     <video ref={video} muted playsInline className="camera-video" hidden={state !== 'ready'} />
-    {state === 'ready' && <SkeletonOverlay landmarks={landmarks} activeJoints={activeJoints} width={size[0]} height={size[1]} />}
+    {state === 'ready' && <SkeletonOverlay landmarks={landmarks} activeJoints={activeJoints} faultJoints={faultJoints} width={size[0]} height={size[1]} />}
     <span className="camera-badge"><ScanLine size={15} /> Camera preview</span>
     {state !== 'ready' && <div className="camera-placeholder">
       {state === 'requesting' ? <Camera size={33} /> : <CameraOff size={33} />}
