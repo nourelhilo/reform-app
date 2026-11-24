@@ -178,8 +178,8 @@ export const Analytics = () => {
                       </div>
                       <span className="text-xs font-mono text-text-muted w-10 text-right">{ex.averageFormScore}%</span>
                       {ex.improvementPercent !== null && (
-                        <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${ex.improvementPercent >= 0 ? 'text-emerald-800 bg-emerald-500/10' : 'text-rose-800 bg-rose-500/10'}`}>
-                          {ex.improvementPercent >= 0 ? '+' : ''}{ex.improvementPercent}%
+                        <span title="Change in average form estimate, earliest vs most recent sessions" className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${ex.improvementPercent >= 0 ? 'text-emerald-800 bg-emerald-500/10' : 'text-rose-800 bg-rose-500/10'}`}>
+                          {ex.improvementPercent >= 0 ? '+' : ''}{ex.improvementPercent} pts
                         </span>
                       )}
                     </div>

@@ -98,7 +98,9 @@ const getProgressAnalytics = async (req, res, next) => {
     workouts.forEach(w => {
       w.exercises?.forEach(ex => {
         const name = ex.exerciseName;
-        if (exerciseStats[name]) {
+        // An exercise skipped mid-session is stored with 0 reps and a 0 score;
+        // counting it would drag the average and the improvement trend down.
+        if (exerciseStats[name] && Number(ex.totalReps) > 0) {
           exerciseStats[name].count += 1;
           exerciseStats[name].reps += ex.totalReps || 0;
           exerciseStats[name].scores.push(ex.averageFormScore);

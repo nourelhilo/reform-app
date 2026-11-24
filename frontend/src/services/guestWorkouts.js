@@ -1,16 +1,36 @@
 const keyPrefix = 'reform.guest-workout.';
 
+// Storage can throw (private browsing, disabled cookies) and entries can be
+// corrupted or written by an older version. Skip anything unreadable instead
+// of crashing the History, Dashboard and Progress pages.
 function readWorkouts() {
   const workouts = [];
-  for (const key of Object.keys(localStorage)) {
+  let keys = [];
+  try { keys = Object.keys(localStorage); } catch { return workouts; }
+  for (const key of keys) {
     if (!key.startsWith(keyPrefix)) continue;
-    const value = localStorage.getItem(key);
-    if (value) workouts.push(JSON.parse(value));
+    try {
+      const workout = JSON.parse(localStorage.getItem(key));
+      if (workout && typeof workout.createdAt === 'string' && Array.isArray(workout.exercises)) {
+        workouts.push(workout);
+      }
+    } catch { /* ignore unreadable entry */ }
   }
   return workouts.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
-const total = (items, field) => items.reduce((sum, item) => sum + item[field], 0);
+const newId = () => globalThis.crypto?.randomUUID?.() ??
+  `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+
+// Same rule as the server: compare the first and last third of sessions.
+function improvement(scores) {
+  if (scores.length < 3) return null;
+  const third = Math.ceil(scores.length / 3);
+  const mean = list => list.reduce((sum, value) => sum + value, 0) / list.length;
+  return Math.round(mean(scores.slice(-third)) - mean(scores.slice(0, third)));
+}
+
+const total = (items, field) => items.reduce((sum, item) => sum + (Number(item[field]) || 0), 0);
 const averageScore = workouts => workouts.length
   ? Math.round(total(workouts, 'overallFormScore') / workouts.length)
   : 0;
@@ -19,7 +39,7 @@ export const guestWorkouts = {
   save(workoutData) {
     const workout = {
       ...workoutData,
-      _id: crypto.randomUUID(),
+      _id: newId(),
       createdAt: new Date().toISOString(),
     };
     localStorage.setItem(keyPrefix + workout._id, JSON.stringify(workout));
@@ -61,7 +81,7 @@ export const guestWorkouts = {
 
   progress() {
     const byExercise = new Map();
-    for (const workout of readWorkouts()) {
+    for (const workout of readWorkouts().reverse()) {
       for (const exercise of workout.exercises) {
         if (!exercise.totalReps) continue;
         if (!byExercise.has(exercise.exerciseName)) byExercise.set(exercise.exerciseName, []);
@@ -75,7 +95,8 @@ export const guestWorkouts = {
         sessionCount: sessions.length,
         totalReps: total(sessions, 'totalReps'),
         averageFormScore: Math.round(total(sessions, 'averageFormScore') / sessions.length),
-        improvementPercent: null,
+        improvementPercent: improvement(sessions.map(session => session.averageFormScore)),
+        scoreHistory: sessions.map(session => session.averageFormScore),
       })),
     };
   },

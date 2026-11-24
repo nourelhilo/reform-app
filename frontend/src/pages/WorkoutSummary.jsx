@@ -1,14 +1,35 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { ArrowRight, RotateCcw } from 'lucide-react';
 import { exercises } from '../services/exercises';
+import { api } from '../services/api';
+import { guestWorkouts } from '../services/guestWorkouts';
+import { useAuth } from '../hooks/useAuth';
 
 const formatDuration = seconds => [Math.floor(seconds / 60), seconds % 60]
   .map(i => String(i).padStart(2, '0')).join(':');
 
 export function WorkoutSummary() {
   const { state } = useLocation();
+  const { user } = useAuth();
   const data = state?.workoutData;
+  const [saveStatus, setSaveStatus] = useState(state?.saveStatus);
+  const [retrying, setRetrying] = useState(false);
+  // A failed account save used to lose the session. Offer a retry, or keep it on this device.
+  const retry = async () => {
+    setRetrying(true);
+    try {
+      await api.saveWorkout(data, user);
+      setSaveStatus(user ? 'saved' : 'local');
+    } catch {
+      setSaveStatus('failed');
+    } finally {
+      setRetrying(false);
+    }
+  };
+  const keepLocal = () => {
+    try { guestWorkouts.save(data); setSaveStatus('device'); } catch { setSaveStatus('failed'); }
+  };
   if (!data) return <div className="studio-wrap summary-wrap"><div className="studio-heading"><h1>No workout data found.</h1></div>
     <Link className="studio-button" to="/workout/setup">Choose a workout <ArrowRight size={17}/></Link></div>;
   const note = {
@@ -16,7 +37,8 @@ export function WorkoutSummary() {
     local: 'Saved to workout history on this device.',
     failed: 'Your session couldn’t be saved to history. You can still review it here.',
     empty: 'No reps were counted, so this session wasn’t added to your history.',
-  }[state.saveStatus];
+    device: 'Kept on this device. Sign out to see it in guest history, or retry later.',
+  }[saveStatus];
 
   return <div className="studio-wrap summary-wrap">
     <div className="studio-heading"><h1>Session Completed</h1><p>{data.title}</p></div>
@@ -32,6 +54,12 @@ export function WorkoutSummary() {
         <span>{ex.totalReps} {ex.totalReps === 1 ? 'rep' : 'reps'} · {ex.totalReps ? ex.averageFormScore + '% estimate' : 'No estimate'}</span>
       </li>)}</ul>
       <p className="studio-caption" role="status">{note}</p>
+      {saveStatus === 'failed' && <div className="summary-actions">
+        <button className="studio-button compact" onClick={retry} disabled={retrying}>
+          {retrying ? 'Saving…' : 'Retry save'}</button>
+        {user && <button className="studio-button subtle compact" onClick={keepLocal} disabled={retrying}>
+          Keep on this device</button>}
+      </div>}
     </section>
     <div className="summary-actions">
       <Link className="studio-button" to="/workout/setup"><RotateCcw size={17}/> Train Again</Link>

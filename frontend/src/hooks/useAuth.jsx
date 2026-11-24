@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
       if (fbUser) {
         try {
-          // Sync with MongoDB backend
+          // Sync the account profile with the backend
           const syncRes = await api.syncUser(fbUser, {
             name: fbUser.displayName || '',
             profileImage: fbUser.photoURL || '',
@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }) => {
             setMongoUser(syncRes.user);
           }
         } catch (err) {
-          console.warn('[Auth Sync Note] Could not connect to backend/MongoDB:', err.message);
+          console.warn('[Auth Sync Note] Could not reach the account backend:', err.message);
         }
       }
     });
@@ -81,7 +81,7 @@ export const AuthProvider = ({ children }) => {
         } catch (e) {
           console.warn('Could not send verification email:', e);
         }
-        // Sync to MongoDB
+        // Create the account profile
         await api.syncUser(cred.user, { name }).catch(() => {});
       }
       return cred.user;

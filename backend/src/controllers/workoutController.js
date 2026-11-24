@@ -5,8 +5,13 @@ const validScore = value => Number.isFinite(Number(value)) && value != null &&
   Number(value) >= 0 && Number(value) <= 100;
 const nonnegative = value => Number.isFinite(Number(value)) && Number(value) >= 0;
 
+const MAX_REPS_PER_EXERCISE = 1000;
+const MAX_TITLE = 120;
+const MAX_NOTES = 2000;
+
 function validExercise(exercise) {
   if (!exerciseNames.has(exercise?.exerciseName) || !validScore(exercise.averageFormScore)) return false;
+  if (Array.isArray(exercise.reps) && exercise.reps.length > MAX_REPS_PER_EXERCISE) return false;
   if (![exercise.totalReps, exercise.validReps, exercise.durationSeconds].every(value => nonnegative(value ?? 0))) return false;
   return exercise.reps === undefined || (Array.isArray(exercise.reps) &&
     exercise.reps.every(rep => rep?.repNumber != null && nonnegative(rep.repNumber) && validScore(rep.formScore)));
@@ -20,7 +25,7 @@ async function saveWorkout(req, res, next) {
   try {
     const { title, durationSeconds = 0, totalReps = 0, overallFormScore = 0,
       exercises, notes, startedAt, endedAt, meta } = req.body;
-    if (!Array.isArray(exercises) || exercises.length === 0) {
+    if (!Array.isArray(exercises) || exercises.length === 0 || exercises.length > 20) {
       return res.status(400).json({ success: false, error: 'Workout must contain at least one exercise record.' });
     }
     const start = startedAt ? new Date(startedAt) : new Date();
@@ -31,15 +36,23 @@ async function saveWorkout(req, res, next) {
     }
 
     const workout = await Workout.create(req.user._id, {
-      title: typeof title === 'string' && title ? title : `${exercises[0].exerciseName.toUpperCase()} Session`,
+      title: typeof title === 'string' && title.trim()
+        ? title.trim().slice(0, MAX_TITLE) : `${exercises[0].exerciseName.toUpperCase()} Session`,
       durationSeconds: Number(durationSeconds),
       totalReps: Number(totalReps),
       overallFormScore: Number(overallFormScore),
+      // Keep only known fields so arbitrary client data isn't stored.
       exercises: exercises.map(exercise => ({
-        ...exercise, totalReps: Number(exercise.totalReps ?? 0), validReps: Number(exercise.validReps ?? 0),
+        exerciseName: exercise.exerciseName,
+        reps: (exercise.reps || []).map(({ repNumber, durationSeconds, formScore, maxRomAngle, feedbackGiven }) =>
+          ({ repNumber, durationSeconds, formScore, maxRomAngle,
+            feedbackGiven: Array.isArray(feedbackGiven) ? feedbackGiven.filter(f => typeof f === 'string').slice(0, 10) : [] })),
+        keyFeedback: Array.isArray(exercise.keyFeedback)
+          ? exercise.keyFeedback.filter(f => typeof f === 'string').slice(0, 20) : [],
+        totalReps: Number(exercise.totalReps ?? 0), validReps: Number(exercise.validReps ?? 0),
         durationSeconds: Number(exercise.durationSeconds ?? 0), averageFormScore: Number(exercise.averageFormScore),
       })),
-      notes: typeof notes === 'string' ? notes : '',
+      notes: typeof notes === 'string' ? notes.slice(0, MAX_NOTES) : '',
       startedAt: start,
       endedAt: end,
       meta: meta && typeof meta === 'object' && !Array.isArray(meta) ? meta : {},

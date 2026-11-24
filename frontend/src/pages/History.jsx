@@ -11,6 +11,7 @@ const formatDate = (iso) => {
 
 const formatDuration = (secs) => {
   if (!secs) return '—';
+  secs = Math.round(secs);
   const m = Math.floor(secs / 60).toString().padStart(2, '0');
   const s = (secs % 60).toString().padStart(2, '0');
   return `${m}:${s}`;
@@ -30,22 +31,28 @@ export const History = () => {
   const [hasMore, setHasMore] = useState(false);
   const LIMIT = 10;
 
+  // Signing in or out switches between guest and account history; start over at page 1.
+  useEffect(() => { setPage(1); setWorkouts([]); }, [user]);
+
   useEffect(() => {
     if (authLoading) return;
+    let current = true;
     const fetchHistory = async () => {
       setLoading(true);
       setError(null);
       try {
         const data = await api.getWorkouts(user, { page, limit: LIMIT });
+        if (!current) return;
         setWorkouts(prev => page === 1 ? (data.workouts || []) : [...prev, ...(data.workouts || [])]);
         setHasMore((data.pagination?.total || 0) > page * LIMIT);
       } catch (err) {
-        setError(err.message || 'Failed to load workout history.');
+        if (current) setError(err.message || 'Failed to load workout history.');
       } finally {
-        setLoading(false);
+        if (current) setLoading(false);
       }
     };
     fetchHistory();
+    return () => { current = false; };
   }, [authLoading, user, page]);
 
   return (
