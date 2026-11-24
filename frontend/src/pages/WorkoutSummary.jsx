@@ -9,6 +9,17 @@ import { useAuth } from '../hooks/useAuth';
 const formatDuration = seconds => [Math.floor(seconds / 60), seconds % 60]
   .map(i => String(i).padStart(2, '0')).join(':');
 
+// Every fault seen, most frequent first. For reps: how many reps showed it.
+export function faultCounts(ex) {
+  if (!ex.reps?.length) return (ex.keyFeedback || []).map(cue => [cue, null]);
+  const counts = new Map();
+  for (const rep of ex.reps) {
+    const cues = new Set([...(rep.faults || []).map(fault => fault.cue), ...(rep.feedbackGiven || [])]);
+    for (const cue of cues) counts.set(cue, (counts.get(cue) || 0) + 1);
+  }
+  return [...counts].sort((a, b) => b[1] - a[1]);
+}
+
 export function WorkoutSummary() {
   const { state } = useLocation();
   const { user } = useAuth();
@@ -49,15 +60,22 @@ export function WorkoutSummary() {
     </dl>
     <section className="studio-panel">
       <h2>Movement Quality</h2>
-      <ul className="summary-list">{data.exercises.map(ex => <li key={ex.exerciseName}>
-        <div className="rep-grade">
-          {ex.totalReps > 0 && <b data-grade={gradeFor(ex.averageFormScore)}>{gradeFor(ex.averageFormScore)}</b>}
-          <p><strong>{exercises[ex.exerciseName]?.name || ex.exerciseName}</strong><br/>
-            {ex.totalReps} {ex.totalReps === 1 ? 'rep' : 'reps'} · {ex.totalReps ? ex.averageFormScore + '% estimate' : 'No estimate'}
-            {ex.sets?.length > 0 && <> · sets {ex.sets.map(set => set.reps).join(' / ')}</>}
-            {ex.keyFeedback?.length > 0 && <><br/>Focus next time: {ex.keyFeedback[0]}</>}</p>
-        </div>
-      </li>)}</ul>
+      <ul className="summary-list">{data.exercises.map(ex => {
+        const hold = ex.holdSeconds > 0 || exercises[ex.exerciseName]?.hold;
+        const counted = hold ? ex.holdSeconds > 0 : ex.totalReps > 0;
+        const faults = faultCounts(ex);
+        return <li key={ex.exerciseName}>
+          <div className="rep-grade">
+            {counted && <b data-grade={gradeFor(ex.averageFormScore)}>{gradeFor(ex.averageFormScore)}</b>}
+            <p><strong>{exercises[ex.exerciseName]?.name || ex.exerciseName}</strong>{ex.weightKg ? ` · ${ex.weightKg} kg` : ''}<br/>
+              {hold ? `${ex.holdSeconds || 0} s held in good form` : `${ex.totalReps} ${ex.totalReps === 1 ? 'rep' : 'reps'}`}
+              {' · '}{counted ? ex.averageFormScore + '% estimate' : 'No estimate'}
+              {ex.sets?.length > 0 && <> · sets {ex.sets.map(set => hold ? `${set.seconds}s` : set.reps).join(' / ')}</>}</p>
+          </div>
+          {faults.length > 0 && <ul className="fault-list">{faults.map(([cue, count]) =>
+            <li key={cue}>{cue}{count != null && <span> {count} of {ex.totalReps} reps</span>}</li>)}</ul>}
+        </li>;
+      })}</ul>
       <p className="studio-caption" role="status">{note}</p>
       {saveStatus === 'failed' && <div className="summary-actions">
         <button className="studio-button compact" onClick={retry} disabled={retrying}>

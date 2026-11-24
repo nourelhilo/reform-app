@@ -50,7 +50,7 @@ test('grades, faults and sets are kept; bad values are dropped', async () => {
   assert.equal(stored.exerciseName, 'glute_bridge');
   assert.equal(stored.reps[0].grade, 'A');
   assert.deepEqual(stored.reps[0].faults, [{ cue: 'Cue', share: 0.2 }]);
-  assert.deepEqual(stored.sets, [{ setNumber: 1, reps: 1, averageFormScore: 91 }]);
+  assert.deepEqual(stored.sets, [{ setNumber: 1, reps: 1, seconds: undefined, averageFormScore: 91 }]);
   assert.equal(stored.repsPerSet, 10);
 });
 
@@ -65,4 +65,40 @@ test('skipped exercises do not lower progress averages', async () => {
   const curl = body.exercises.find(entry => entry.exercise === 'curl');
   assert.equal(curl.sessionCount, 1);
   assert.equal(curl.averageFormScore, 80);
+});
+
+test('personal records and streaks', () => {
+  const { personalRecords, streakDays } = require('../src/utils/records');
+  const day = 24 * 60 * 60 * 1000;
+  const now = Date.UTC(2026, 10, 24, 12);
+  const at = daysAgo => new Date(now - daysAgo * day).toISOString();
+  const history = [
+    { createdAt: at(0), exercises: [{ exerciseName: 'plank', totalReps: 0, holdSeconds: 95, averageFormScore: 88,
+      sets: [{ seconds: 60.4 }, { seconds: 35 }] }] },
+    { createdAt: at(1), exercises: [{ exerciseName: 'curl', totalReps: 22, averageFormScore: 91, weightKg: 12.5,
+      sets: [{ reps: 12 }, { reps: 10 }] }] },
+    { createdAt: at(2), exercises: [{ exerciseName: 'curl', totalReps: 0, averageFormScore: 0 }] },
+    { createdAt: at(4), exercises: [{ exerciseName: 'curl', totalReps: 15, averageFormScore: 70 }] },
+  ];
+  const records = personalRecords(history);
+  assert.deepEqual(records.plank, { bestSetReps: 0, longestHoldSeconds: 60, bestFormScore: 88, heaviestKg: 0 });
+  assert.deepEqual(records.curl, { bestSetReps: 15, longestHoldSeconds: 0, bestFormScore: 91, heaviestKg: 12.5 });
+  assert.equal(streakDays(history, now), 3);                 // today, yesterday, 2 days ago
+  assert.equal(streakDays(history.slice(1), now), 2);        // nothing today yet: still counts from yesterday
+  assert.equal(streakDays(history.slice(3), now), 0);
+});
+
+test('hold exercises save with seconds and weights', async () => {
+  const body = workout();
+  Object.assign(body.exercises[0], { exerciseName: 'plank', totalReps: 0, validReps: 0, holdSeconds: 45, reps: [],
+    sets: [{ setNumber: 1, seconds: 45, averageFormScore: 90 }] });
+  body.totalReps = 0;
+  const res = await call(saveWorkout, body);
+  assert.equal(res.code, 201);
+  const stored = saved.at(-1).exercises[0];
+  assert.equal(stored.holdSeconds, 45);
+  assert.deepEqual(stored.sets, [{ setNumber: 1, reps: undefined, seconds: 45, averageFormScore: 90 }]);
+  const heavy = workout();
+  heavy.exercises[0].weightKg = 900;
+  assert.equal((await call(saveWorkout, heavy)).code, 400);
 });

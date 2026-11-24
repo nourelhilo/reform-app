@@ -1,5 +1,6 @@
 const Workout = require('../models/Workout');
 const { EXERCISES } = require('../config/exercises');
+const { personalRecords, streakDays } = require('../utils/records');
 
 // @desc    Get dashboard summary metrics and weekly trends
 // @route   GET /api/analytics/dashboard
@@ -66,6 +67,7 @@ const getDashboardMetrics = async (req, res, next) => {
       },
       recentWorkouts: workouts.slice(0, 5),
       formScoreTrend,
+      streakDays: streakDays(workouts),
     });
   } catch (error) {
     next(error);
@@ -95,7 +97,7 @@ const getProgressAnalytics = async (req, res, next) => {
         const name = ex.exerciseName;
         // An exercise skipped mid-session is stored with 0 reps and a 0 score;
         // counting it would drag the average and the improvement trend down.
-        if (exerciseStats[name] && Number(ex.totalReps) > 0) {
+        if (exerciseStats[name] && (Number(ex.totalReps) > 0 || Number(ex.holdSeconds) > 0)) {
           exerciseStats[name].count += 1;
           exerciseStats[name].reps += ex.totalReps || 0;
           exerciseStats[name].scores.push(ex.averageFormScore);
@@ -103,6 +105,7 @@ const getProgressAnalytics = async (req, res, next) => {
       });
     });
 
+    const records = personalRecords(workouts);
     const exerciseSummaries = Object.keys(exerciseStats).map(name => {
       const stat = exerciseStats[name];
       const avg = stat.scores.length > 0
@@ -126,6 +129,7 @@ const getProgressAnalytics = async (req, res, next) => {
         averageFormScore: avg,
         improvementPercent: improvement,
         scoreHistory: stat.scores,
+        record: records[name] || null,
       };
     });
 
@@ -133,6 +137,7 @@ const getProgressAnalytics = async (req, res, next) => {
       success: true,
       hasData: true,
       totalWorkouts: workouts.length,
+      streakDays: streakDays(workouts),
       exercises: exerciseSummaries,
     });
   } catch (error) {

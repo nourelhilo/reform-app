@@ -107,7 +107,9 @@ export const Dashboard = () => {
           <div className="text-3xl font-bold font-mono-stat text-text-primary">
             {data?.summary?.totalWorkouts ?? 0}
           </div>
-          <span className="text-[11px] text-text-muted mt-2">Total logged sessions</span>
+          <span className="text-[11px] text-text-muted mt-2">
+            {data?.streakDays > 0 ? `${data.streakDays}-day streak 🔥` : 'Train today to start a streak'}
+          </span>
         </div>
       </div>
 

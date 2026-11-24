@@ -3,7 +3,10 @@ import time
 import cv2
 import numpy as np
 
-from app.exercises.tracking import ExerciseTracker, RULES, VIEWS
+from app.exercises.tracking import ExerciseTracker, _all_exercises
+
+VIEWS = _all_exercises()
+RULES = VIEWS  # every supported exercise name
 from app.pose.detector import PoseDetector
 
 
@@ -77,7 +80,7 @@ class WorkoutSessionManager:
             "exercise": self.exercise, "rep": self.tracker.cycle.rep_count, "phase": "idle",
             "formScore": self.tracker.cycle.form_score, "instantScore": None,
             "confidence": 0, "feedback": message, "speechCue": None,
-            "repCompleted": False, "lastRepDetail": None, "activeJoints": [], "faultJoints": [],
+            "repCompleted": False, "lastRepDetail": None, "activeJoints": [], "faultJoints": [], "goal": None,
             "exerciseMetrics": {}, "landmarks": None,
             "visibility": {"status": status, "is_valid": False,
                            "message": message, "overall_confidence": 0},

@@ -40,13 +40,15 @@ def clamp(value):
 
 
 class RepCycle:
-    def __init__(self, phases, min_duration, min_frames=3, high_peak=False, target=None, ideal=None):
+    def __init__(self, phases, min_duration, min_frames=3, high_peak=False, target=None, ideal=None, home=None):
         self.phases = phases
         self.min_duration = min_duration
         self.min_frames = min_frames
         self.high_peak = high_peak
         self.target = target
         self.ideal = ideal
+        self.home = home
+        self.last_peak = None
         self.rep_count = self.score_total = 0
         self.coach = FeedbackManager()
         self.interrupt()
@@ -131,10 +133,11 @@ class RepCycle:
                     self.score_total += score
                     detail = {
                         "repNumber": self.rep_count, "durationSeconds": round(duration, 2),
-                        "maxRomAngle": round(self.peak, 1), **summary,
+                        "maxRomAngle": round(self.peak, 1), "goalAngle": self.target, **summary,
                     }
                 elif not self.hit_target:
                     note = "Range target missed. Move through your comfortable range."
+                self.last_peak = self.peak
                 self.started = None
                 self.phase = self.phases[0]
             elif self.hit_target:
@@ -152,4 +155,21 @@ class RepCycle:
             "lastRepDetail": detail, "activeJoints": motion.joints,
             "faultJoints": fault_joints if self.started is not None else [],
             "metrics": motion.metrics,
+            "goal": self.goal(motion.angle),
+        }
+
+    def goal(self, angle):
+        """Where the counted angle is against the rep's goal, for the live gauge."""
+        if self.target is None:
+            return None
+        in_rep = self.started is not None
+        home = self.home if self.home is not None else angle
+        span = (self.target - home) or 1
+        return {
+            "current": round(angle, 1), "start": home, "target": self.target, "ideal": self.ideal,
+            "direction": "higher" if self.high_peak else "lower",
+            # 0 at the start position, 1 at the counted goal (can exceed 1 toward the ideal).
+            "progress": round(max(0.0, (angle - home) / span), 2),
+            "reached": bool(in_rep and self.hit_target),
+            "best": round(self.peak, 1) if in_rep else (round(self.last_peak, 1) if self.last_peak is not None else None),
         }

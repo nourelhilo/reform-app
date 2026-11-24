@@ -79,13 +79,14 @@ class Pose:
         return abs(self.dx(*S)) >= 0.5 * max(self.distance(S[i], H[i]) for i in range(2))
 
 
-class ExerciseTracker:
+class RepTracker:
     def __init__(self, exercise):
         self.exercise = exercise
         self.home, self.trigger, self.target, duration, phases = RULES[exercise]
         # Fast moves only get 2-3 frames per rep at the live service's frame rate.
         self.cycle = RepCycle(phases, duration, min_frames=2 if exercise == "jumping_jack" else 3,
-                              high_peak=exercise in HIGH_PEAK, target=self.target, ideal=IDEAL[exercise])
+                              high_peak=exercise in HIGH_PEAK, target=self.target, ideal=IDEAL[exercise],
+                              home=self.home)
         self.side = self.lead = None
 
     def interrupt(self):
@@ -272,3 +273,16 @@ class ExerciseTracker:
         if p.angle(H[i], K[i], A[i]) > 130:
             issues = (("Bring your feet closer to your hips.", (K[i], A[i])),)
         return self.rise(angle, joints, {"hipAngle": round(angle, 1)}, issues)
+
+
+def ExerciseTracker(exercise):
+    """Rep-counted exercises get a RepTracker; timed holds get a HoldTracker."""
+    from app.exercises.hold import HOLDS, HoldTracker
+    return HoldTracker(exercise) if exercise in HOLDS else RepTracker(exercise)
+
+
+def _all_exercises():
+    from app.exercises.hold import HOLDS
+    views = dict(VIEWS)
+    views.update({name: rule[3] for name, rule in HOLDS.items()})
+    return views

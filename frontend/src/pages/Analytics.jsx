@@ -2,6 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { api } from '../services/api';
 import { exerciseName } from '../services/exercises';
+
+// "15 reps in a set · 1:05 hold · 12.5 kg"
+export function recordText(record) {
+  if (!record) return '';
+  const parts = [];
+  if (record.bestSetReps > 0) parts.push(`${record.bestSetReps} reps in a set`);
+  if (record.longestHoldSeconds > 0) {
+    const s = record.longestHoldSeconds;
+    parts.push(`${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')} hold`);
+  }
+  if (record.heaviestKg > 0) parts.push(`${record.heaviestKg} kg`);
+  return parts.join(' · ');
+}
 import { BarChart3, TrendingUp, Repeat2, Clock, Star, Loader2, Info, Activity } from 'lucide-react';
 
 
@@ -154,15 +167,19 @@ export const Analytics = () => {
           {/* Per-Exercise Breakdown */}
           {exercises.filter(e => e.sessionCount > 0).length > 0 && (
             <div className="bg-surface border border-border-subtle rounded-2xl p-6">
-              <h3 className="font-semibold text-text-primary text-sm mb-5">Exercise Breakdown</h3>
+              <div className="flex items-baseline justify-between mb-5">
+                <h3 className="font-semibold text-text-primary text-sm">Exercise Breakdown &amp; Personal Records</h3>
+                {progress?.streakDays > 0 && <span className="text-xs font-mono text-text-muted">{progress.streakDays}-day streak</span>}
+              </div>
               <div className="space-y-4">
                 {exercises
                   .filter(e => e.sessionCount > 0)
                   .map((ex, i) => (
                     <div key={ex.exercise} className="flex items-center gap-4">
-                      <div className="w-28 flex-shrink-0">
+                      <div className="w-44 flex-shrink-0">
                         <p className="text-xs font-medium text-text-primary">{exerciseName(ex.exercise)}</p>
-                        <p className="text-[11px] text-text-muted">{ex.totalReps} reps • {ex.sessionCount} sessions</p>
+                        <p className="text-[11px] text-text-muted">{ex.totalReps > 0 ? `${ex.totalReps} reps • ` : ''}{ex.sessionCount} sessions</p>
+                        {recordText(ex.record) && <p className="text-[11px] font-medium text-accent">Best: {recordText(ex.record)}</p>}
                       </div>
                       <div className="flex-1 bg-elevated rounded-full h-2">
                         <div

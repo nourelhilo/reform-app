@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowRight, Check, Mic, MicOff, Pause, Play, SkipForward, Square, Volume2, VolumeX } from 'lucide-react';
 import { CameraView } from '../components/CameraView';
+import { AngleGauge } from '../components/AngleGauge';
 import { useWorkoutSocket } from '../hooks/useWorkoutSocket';
 import { useVoiceCommands, voiceCommandsSupported } from '../hooks/useVoiceCommands';
 import { useAuth } from '../hooks/useAuth';
@@ -26,7 +27,11 @@ const readMic = () => { try { return localStorage.getItem(MIC_KEY) === 'on'; } c
 // stage: countdown → active → (rest → countdown → active)… → done → next
 function WorkoutSet({ id, index, list, plan, onAdvance, onFinish, voice, setVoice, mic, setMic, showSkeleton, saving }) {
   const movement = exercises[id];
+  const isHold = Boolean(movement.hold);
   const [paused, setPaused] = useState(false);
+  const [holdSets, setHoldSets] = useState([]);
+  const holdBase = useRef(0);
+  const faultsSeen = useRef(new Set());
   const [camera, setCamera] = useState('requesting');
   const [stage, setStage] = useState('countdown');
   const [count, setCount] = useState(3);
@@ -45,8 +50,29 @@ function WorkoutSet({ id, index, list, plan, onAdvance, onFinish, voice, setVoic
   const setReps = tracking.reps.length - setStarts[setIndex];
   const lastRep = tracking.reps[tracking.reps.length - 1];
   const isLast = index + 1 >= list.length;
+  // Holds: the server accumulates good-position seconds; each set counts from its "Go".
+  const heldNow = tracking.hold?.seconds ?? 0;
+  const setHeld = isHold && stage === 'active' ? Math.max(0, heldNow - holdBase.current) : 0;
+  const weightKg = plan.weights?.[id];
+
+  // Remember every fault cue shown during a hold for the summary.
+  useEffect(() => {
+    if (isHold && stage === 'active' && tracking.faultJoints.length && tracking.feedback) faultsSeen.current.add(tracking.feedback);
+  }, [isHold, stage, tracking.faultJoints, tracking.feedback]);
 
   const record = useCallback(() => {
+    const extra = weightKg ? { weightKg } : {};
+    if (isHold) {
+      const partial = stage === 'active' && setHeld >= 1 ? [{ setNumber: holdSets.length + 1, seconds: Math.round(setHeld) }] : [];
+      const sets = [...holdSets, ...partial];
+      const holdSeconds = sets.reduce((sum, set) => sum + set.seconds, 0);
+      return {
+        exerciseName: id, totalReps: 0, validReps: 0, holdSeconds, plannedSets: plan.sets, holdTarget: plan.holdSeconds,
+        averageFormScore: holdSeconds ? tracking.serverFormScore ?? 0 : 0, sets, reps: [],
+        durationSeconds: Math.round((elapsed.current + (started.current === null ? 0 : performance.now() - started.current)) / 1000),
+        keyFeedback: [...faultsSeen.current], ...extra,
+      };
+    }
     const sets = setStarts.map((start, i) => {
       const reps = tracking.reps.slice(start, setStarts[i + 1] ?? tracking.reps.length);
       return { setNumber: i + 1, reps: reps.length, averageFormScore: average(reps) };
@@ -55,9 +81,9 @@ function WorkoutSet({ id, index, list, plan, onAdvance, onFinish, voice, setVoic
       exerciseName: id, totalReps: tracking.reps.length, validReps: tracking.reps.length,
       averageFormScore: tracking.formScore ?? 0, plannedSets: plan.sets, repsPerSet: plan.repsPerSet, sets,
       durationSeconds: Math.round((elapsed.current + (started.current === null ? 0 : performance.now() - started.current)) / 1000),
-      reps: tracking.reps, keyFeedback: [...new Set(tracking.reps.flatMap(rep => rep.feedbackGiven || []))],
+      reps: tracking.reps, keyFeedback: [...new Set(tracking.reps.flatMap(rep => rep.feedbackGiven || []))], ...extra,
     };
-  }, [id, plan, setStarts, tracking.reps, tracking.formScore]);
+  }, [id, plan, setStarts, tracking.reps, tracking.formScore, tracking.serverFormScore, isHold, holdSets, setHeld, stage, weightKg]);
   const advance = useCallback(() => (isLast ? onFinish : onAdvance)(record()), [isLast, onFinish, onAdvance, record]);
 
   const commands = useVoiceCommands(mic && !saving, {
@@ -88,6 +114,7 @@ function WorkoutSet({ id, index, list, plan, onAdvance, onFinish, voice, setVoic
       if (count > 0) setCount(count - 1);
       else {
         tracking.interrupt();
+        holdBase.current = tracking.hold?.seconds ?? 0;
         setStage('active');
       }
     }, count ? 1000 : 500);
@@ -107,9 +134,11 @@ function WorkoutSet({ id, index, list, plan, onAdvance, onFinish, voice, setVoic
     return () => clearTimeout(timer);
   }, [stage, restLeft, paused]);
 
-  // Finish the set when the target reps are reached.
+  // Finish the set when the target reps (or hold time) are reached.
   useEffect(() => {
-    if (stage !== 'active' || setReps < plan.repsPerSet) return;
+    if (stage !== 'active') return;
+    if (isHold ? setHeld < plan.holdSeconds : setReps < plan.repsPerSet) return;
+    if (isHold) setHoldSets(sets => [...sets, { setNumber: sets.length + 1, seconds: Math.round(setHeld) }]);
     if (setIndex + 1 < plan.sets) {
       setSetStarts(starts => [...starts, tracking.reps.length]);
       setRestLeft(plan.restSeconds);
@@ -118,7 +147,8 @@ function WorkoutSet({ id, index, list, plan, onAdvance, onFinish, voice, setVoic
       setNextIn(AUTO_ADVANCE_SECONDS);
       setStage('done');
     }
-  }, [stage, setReps, setIndex, plan, tracking.reps.length]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage, setReps, setHeld >= plan.holdSeconds, setIndex, plan, tracking.reps.length, isHold]);
 
   // Move on by itself after the last set.
   useEffect(() => {
@@ -135,7 +165,6 @@ function WorkoutSet({ id, index, list, plan, onAdvance, onFinish, voice, setVoic
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage]);
 
-  const angle = tracking.exerciseMetrics[movement.key];
   const status = paused ? 'Paused' : stage === 'rest' ? 'Resting' : done ? 'Complete' :
     stage === 'countdown' ? (ready ? 'Get ready' : 'Step into view') :
     tracking.connection === 'offline' ? 'Offline' : ready ? 'Tracking' : 'Waiting for position';
@@ -159,7 +188,7 @@ function WorkoutSet({ id, index, list, plan, onAdvance, onFinish, voice, setVoic
         <span>Next: set {setIndex + 1} of {plan.sets}. It starts when you’re back in position.</span>
         <button className="studio-button subtle compact" onClick={() => setRestLeft(0)}><SkipForward size={15}/> Skip rest</button></div>
       : done ? <div className="camera-overlay"><Check size={44}/>
-        <span>{movement.name}: {tracking.reps.length} reps in {setStarts.length} {setStarts.length === 1 ? 'set' : 'sets'}</span>
+        <span>{movement.name}: {isHold ? `${holdSets.reduce((sum, set) => sum + set.seconds, 0)} s held` : `${tracking.reps.length} reps`} in {setStarts.length} {setStarts.length === 1 ? 'set' : 'sets'}</span>
         <strong className="small">{nextIn}</strong>
         <span>{isLast ? 'Showing your summary' : `Next: ${exercises[list[index + 1]].name}`}</span>
         <button className="studio-button compact" onClick={advance} disabled={saving}>{isLast ? 'Finish now' : 'Start now'} <ArrowRight size={16}/></button></div>
@@ -187,10 +216,14 @@ function WorkoutSet({ id, index, list, plan, onAdvance, onFinish, voice, setVoic
         <div className="live-status" data-live={ready && !paused && stage === 'active'}><i/>{status}</div>
         <div className="set-progress">SET {setIndex + 1}/{plan.sets}</div>
       </div>
-      <div className="live-count"><strong>{String(Math.min(setReps, plan.repsPerSet)).padStart(2, '0')}</strong><span>/ {plan.repsPerSet} REPS</span></div>
+      {isHold
+        ? <div className="live-count"><strong>{String(Math.min(Math.floor(setHeld), plan.holdSeconds)).padStart(2, '0')}</strong><span>/ {plan.holdSeconds} S HELD</span></div>
+        : <div className="live-count"><strong>{String(Math.min(setReps, plan.repsPerSet)).padStart(2, '0')}</strong><span>/ {plan.repsPerSet} REPS</span></div>}
+      {!paused && camera === 'ready' && <AngleGauge goal={tracking.goal} label={movement.angle}
+        inRep={stage === 'active' && tracking.instantScore != null} />}
       <dl className="live-metrics">
-        <div><dt>{movement.angle}</dt><dd>{angle == null || paused || stage !== 'active' ? '—' : Math.round(angle) + '°'}</dd></div>
-        <div><dt>Form estimate</dt><dd>{tracking.formScore == null ? '—' : tracking.formScore + '%'}</dd></div>
+        <div><dt>Form estimate</dt><dd>{(isHold ? tracking.serverFormScore : tracking.formScore) ?? '—'}{(isHold ? tracking.serverFormScore : tracking.formScore) != null && '%'}</dd></div>
+        <div><dt>{weightKg ? 'Weight' : 'Set'}</dt><dd>{weightKg ? `${weightKg} kg` : `${setIndex + 1} of ${plan.sets}`}</dd></div>
       </dl>
       {lastRep?.grade && <div className="rep-grade" aria-live="polite">
         <b data-grade={lastRep.grade}>{lastRep.grade}</b>
@@ -230,14 +263,17 @@ export function Workout() {
     setSaving(true);
     const completed = [...records, record];
     const allReps = completed.flatMap(ex => ex.reps);
+    const held = completed.filter(ex => ex.holdSeconds > 0);
     const workoutData = {
       title: completed.map(ex => exercises[ex.exerciseName].name).join(' + '),
       durationSeconds: completed.reduce((total, ex) => total + ex.durationSeconds, 0),
-      totalReps: allReps.length, overallFormScore: average(allReps),
+      totalReps: allReps.length,
+      overallFormScore: allReps.length ? average(allReps)
+        : held.length ? Math.round(held.reduce((sum, ex) => sum + ex.averageFormScore, 0) / held.length) : 0,
       meta: { poseRuleVersion: 4, plan }, exercises: completed, startedAt: startedAt.current, endedAt: new Date().toISOString(),
     };
     let saveStatus = 'empty';
-    if (allReps.length) {
+    if (allReps.length || held.length) {
       try {
         await api.saveWorkout(workoutData, user);
         saveStatus = user ? 'saved' : 'local';

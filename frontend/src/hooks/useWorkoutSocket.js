@@ -127,5 +127,6 @@ export function useWorkoutSocket(exercise, { paused = false, voice = false, voic
   }, []);
 
   const formScore = reps.length ? Math.round(reps.reduce((sum, rep) => sum + rep.formScore, 0) / reps.length) : null;
-  return { ...frame, connection, readyFrames, sendFrame, interrupt, reps, formScore };
+  // formScore here averages counted reps; holds report their own score from the server.
+  return { ...frame, serverFormScore: frame.formScore ?? null, connection, readyFrames, sendFrame, interrupt, reps, formScore };
 }

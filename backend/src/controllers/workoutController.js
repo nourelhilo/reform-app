@@ -22,8 +22,9 @@ function cleanRep(rep) {
 function cleanSets(sets) {
   if (!Array.isArray(sets)) return [];
   return sets.slice(0, 20).map(set => ({
-    setNumber: num(set?.setNumber), reps: num(set?.reps), averageFormScore: num(set?.averageFormScore),
-  })).filter(set => set.reps !== undefined && set.reps >= 0);
+    setNumber: num(set?.setNumber), reps: num(set?.reps), seconds: num(set?.seconds),
+    averageFormScore: num(set?.averageFormScore),
+  })).filter(set => (set.reps ?? 0) >= 0 && (set.seconds ?? 0) >= 0 && (set.reps !== undefined || set.seconds !== undefined));
 }
 const validScore = value => Number.isFinite(Number(value)) && value != null &&
   Number(value) >= 0 && Number(value) <= 100;
@@ -36,7 +37,9 @@ const MAX_NOTES = 2000;
 function validExercise(exercise) {
   if (!exerciseNames.has(exercise?.exerciseName) || !validScore(exercise.averageFormScore)) return false;
   if (Array.isArray(exercise.reps) && exercise.reps.length > MAX_REPS_PER_EXERCISE) return false;
-  if (![exercise.totalReps, exercise.validReps, exercise.durationSeconds].every(value => nonnegative(value ?? 0))) return false;
+  if (![exercise.totalReps, exercise.validReps, exercise.durationSeconds, exercise.holdSeconds, exercise.weightKg]
+    .every(value => nonnegative(value ?? 0))) return false;
+  if ((exercise.weightKg ?? 0) > 500 || (exercise.holdSeconds ?? 0) > 6 * 60 * 60) return false;
   return exercise.reps === undefined || (Array.isArray(exercise.reps) &&
     exercise.reps.every(rep => rep?.repNumber != null && nonnegative(rep.repNumber) && validScore(rep.formScore)));
 }
@@ -71,6 +74,7 @@ async function saveWorkout(req, res, next) {
         reps: (exercise.reps || []).map(cleanRep),
         sets: cleanSets(exercise.sets),
         plannedSets: num(exercise.plannedSets), repsPerSet: num(exercise.repsPerSet),
+        holdSeconds: num(exercise.holdSeconds), weightKg: num(exercise.weightKg),
         keyFeedback: cues(exercise.keyFeedback, 20),
         totalReps: Number(exercise.totalReps ?? 0), validReps: Number(exercise.validReps ?? 0),
         durationSeconds: Number(exercise.durationSeconds ?? 0), averageFormScore: Number(exercise.averageFormScore),

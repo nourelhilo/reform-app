@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Activity, ArrowLeft, ArrowRight, ArrowUpFromLine, Bed, Check, Dumbbell, MoveHorizontal, MoveVertical, PersonStanding, Zap } from 'lucide-react';
-import { exercises, getExerciseList, getPlan } from '../services/exercises';
+import { Activity, Armchair, ArrowLeft, ArrowRight, ArrowUpFromLine, Bed, Check, Dumbbell, Minus, MoveHorizontal, MoveVertical, PersonStanding, Slash, Zap } from 'lucide-react';
+import { exercises, getExerciseList, getPlan, weighted } from '../services/exercises';
 
 const icons = { squat: MoveVertical, pushup: Activity, curl: Dumbbell, lunge: PersonStanding, jumping_jack: Zap,
-  shoulder_press: ArrowUpFromLine, lateral_raise: MoveHorizontal, glute_bridge: Bed };
+  shoulder_press: ArrowUpFromLine, lateral_raise: MoveHorizontal, glute_bridge: Bed,
+  plank: Minus, side_plank: Slash, wall_sit: Armchair };
 
+// [key, label, min, max, step, shown when]
 const planFields = [
-  ['sets', 'Sets per exercise', 1, 6, 1],
-  ['repsPerSet', 'Reps per set', 3, 30, 1],
-  ['restSeconds', 'Rest between sets (s)', 10, 180, 5],
+  ['sets', 'Sets per exercise', 1, 6, 1, () => true],
+  ['repsPerSet', 'Reps per set', 3, 30, 1, list => list.some(id => !exercises[id].hold)],
+  ['holdSeconds', 'Hold per set (s)', 10, 300, 5, list => list.some(id => exercises[id].hold)],
+  ['restSeconds', 'Rest between sets (s)', 10, 180, 5, () => true],
 ];
 
 export function WorkoutSetup() {
@@ -41,12 +44,19 @@ export function WorkoutSetup() {
         <h2>{selected.length} {selected.length === 1 ? 'exercise' : 'exercises'} selected</h2>
         {selected.length ? <ol>{selected.map((id, i) => <li key={id}><span>{String(i+1).padStart(2, '0')}</span>{exercises[id].name}</li>)}</ol>
           : <p className="text-text-muted text-sm">Select an exercise to continue.</p>}
-        <div className="plan-fields">{planFields.map(([key, label, min, max, step]) =>
+        <div className="plan-fields">{planFields.filter(field => field[5](selected)).map(([key, label, min, max, step]) =>
           <label key={key}><span>{label}</span>
             <input type="number" inputMode="numeric" min={min} max={max} step={step} value={plan[key]}
               onChange={event => setPlan(current => ({ ...current, [key]: event.target.value }))}
               onBlur={() => setPlan(current => getPlan(current))} />
           </label>)}
+          {selected.filter(id => weighted.has(id)).map(id =>
+            <label key={`kg-${id}`}><span>{exercises[id].name} weight (kg, optional)</span>
+              <input type="number" inputMode="decimal" min="0" max="500" step="0.5" placeholder="—"
+                value={plan.weights?.[id] ?? ''}
+                onChange={event => setPlan(current => ({ ...current, weights: { ...current.weights, [id]: event.target.value } }))}
+                onBlur={() => setPlan(current => getPlan(current))} />
+            </label>)}
         </div>
         <button className="studio-button w-full" disabled={!selected.length}
           onClick={() => navigate('/workout/calibration', { state: { exercises: selected, plan: getPlan(plan) } })}>

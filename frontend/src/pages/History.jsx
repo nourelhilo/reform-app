@@ -114,7 +114,7 @@ export const History = () => {
                 <div className="border-t border-border-subtle pt-4 flex flex-wrap gap-2">
                   {w.exercises.map((ex, i) => (
                     <span key={i} className="text-xs bg-elevated border border-border-subtle text-text-muted rounded-lg px-3 py-1 font-mono">
-                      {exerciseName(ex.exerciseName)} — {ex.totalReps}r
+                      {exerciseName(ex.exerciseName)} — {ex.holdSeconds > 0 ? `${ex.holdSeconds}s` : `${ex.totalReps}r`}{ex.weightKg ? ` @ ${ex.weightKg}kg` : ''}
                     </span>
                   ))}
                 </div>

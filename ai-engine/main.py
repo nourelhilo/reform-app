@@ -9,7 +9,9 @@ from fastapi import FastAPI, Query, WebSocket, WebSocketDisconnect
 from starlette.concurrency import run_in_threadpool
 
 from app.api.websocket import MAX_FRAME_BYTES, WorkoutSessionManager
-from app.exercises.tracking import RULES
+from app.exercises.tracking import _all_exercises
+
+RULES = _all_exercises()
 from app.pose.detector import MODEL_PATH
 
 app = FastAPI(title="Reform pose tracking", version="1.1.0")
