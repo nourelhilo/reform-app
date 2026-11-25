@@ -17,7 +17,8 @@ S, E, W, H, K, A, HEEL, TOE = (
 # For "low" exercises the angle falls toward the target; for HIGH_PEAK ones it rises.
 RULES = {
     "squat": (165, 150, 95, 0.55, ("standing", "descending", "bottom", "ascending")),
-    "pushup": (160, 145, 100, 0.45, ("plank", "descending", "bottom", "ascending")),
+    # Filmed push-ups lock out at about 150-157° in the camera plane (real-video check).
+    "pushup": (150, 140, 100, 0.45, ("plank", "descending", "bottom", "ascending")),
     "curl": (160, 145, 55, 0.45, ("extended", "curling", "peak", "lowering")),
     "lunge": (160, 145, 95, 0.60, ("standing", "descending", "bottom", "ascending")),
     "jumping_jack": (35, 55, 130, 0.34, ("closed", "opening", "open", "closing")),
@@ -88,10 +89,12 @@ class RepTracker:
                               high_peak=exercise in HIGH_PEAK, target=self.target, ideal=IDEAL[exercise],
                               home=self.home)
         self.side = self.lead = None
+        self.feet_apart = False
 
     def interrupt(self):
         self.cycle.interrupt()
         self.side = self.lead = None
+        self.feet_apart = False
 
     def track(self, landmarks, width, height, now=None):
         if landmarks is None or len(landmarks) < 33:
@@ -229,9 +232,13 @@ class RepTracker:
         tip = W if wrists else E
         overhead = all(p.point(tip[i])[1] < p.point(S[i])[1] for i in range(2))
         issues = (("Raise both arms together.", S + E),) if abs(arms[0] - arms[1]) > 25 else ()
-        return Motion(angle, max(arms) <= self.home and ratio <= 1.15,
+        home = max(arms) <= self.home and ratio <= 1.15
+        # On real video the feet often land apart a frame before or after the arms
+        # peak, so the jump counts if the feet were apart at any point in the rep.
+        self.feet_apart = (self.feet_apart or ratio >= 1.30) and not home
+        return Motion(angle, home,
                       max(arms) >= self.trigger or ratio >= 1.30,
-                      angle >= self.target and overhead and ratio >= 1.30,
+                      angle >= self.target and overhead and (ratio >= 1.30 or self.feet_apart),
                       angle < 135, joints, {"armElevation": round(angle, 1), "stanceRatio": round(ratio, 2)}, issues)
 
     def press(self, p):

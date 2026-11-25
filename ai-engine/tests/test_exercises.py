@@ -148,3 +148,28 @@ def test_fast_jitter_does_not_count():
         result, _ = tracker.track(pose("squat", angle), 16, 9, i*.05)
     assert result["rep"] == 0
     assert result["formScore"] is None
+
+
+def test_jack_counts_when_feet_peak_before_arms():
+    """Real video: the feet land apart a frame before the arms reach the top."""
+    tracker = ExerciseTracker("jumping_jack")
+    frames = [(0, 10, .09), (.12, 60, .30), (.24, 150, .09), (.36, 90, .09), (.48, 10, .09)]
+    for t, angle, spread in frames:
+        result, _ = tracker.track(pose("jumping_jack", angle, spread=spread), 16, 9, t)
+    assert result["rep"] == 1
+
+
+def test_jack_arms_only_is_not_counted():
+    tracker = ExerciseTracker("jumping_jack")
+    for t, angle in [(0, 10), (.12, 90), (.24, 160), (.36, 90), (.48, 10)]:
+        result, _ = tracker.track(pose("jumping_jack", angle, spread=.09), 16, 9, t)
+    assert result["rep"] == 0
+
+
+def test_pushup_counts_with_soft_camera_lockout():
+    """Real video: arms read 152-157° at the top of each push-up, never 160°."""
+    tracker = ExerciseTracker("pushup")
+    angles = [155, 150, 154, 120, 70, 38, 36, 90, 153, 155, 154, 110, 40, 37, 100, 152, 156]
+    for i, angle in enumerate(angles):
+        result, _ = tracker.track(pose("pushup", angle), 16, 9, i * .25)
+    assert result["rep"] == 2

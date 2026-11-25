@@ -13,11 +13,11 @@ Use Node.js 20+ and 64-bit Python 3.11 or 3.12. Start the pose service in one te
 ```powershell
 cd ai-engine
 python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
 .\.venv\Scripts\python.exe main.py
 ```
 
-On macOS or Linux, use `.venv/bin/python` in the last two commands. The MediaPipe model is included, and the service listens on port 8000.
+On macOS or Linux, use `.venv/bin/python` in the last two commands. `requirements-dev.txt` adds the test and training tools; the hosted service installs only `requirements.txt`. The MediaPipe model is included, and the service listens on port 8000.
 
 Start the frontend in another terminal:
 
