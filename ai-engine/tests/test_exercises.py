@@ -83,7 +83,7 @@ def test_one_full_rep_at_measured_angles(name, angles, aspect, mirror):
 @pytest.mark.parametrize("name,angles", [
     ("squat", [175, 135, 116, 130, 175]),
     ("pushup", [175, 135, 107, 130, 175]),
-    ("curl", [175, 135, 65, 130, 175]),
+    ("curl", [175, 135, 85, 130, 175]),
     ("lunge", [175, 135, 108, 130, 175]),
     ("jumping_jack", [10, 90, 118, 90, 10]),
 ])
@@ -173,3 +173,22 @@ def test_pushup_counts_with_soft_camera_lockout():
     for i, angle in enumerate(angles):
         result, _ = tracker.track(pose("pushup", angle), 16, 9, i * .25)
     assert result["rep"] == 2
+
+
+def test_curl_counts_facing_the_camera():
+    """Facing the camera, the wrist's height above the elbow shows how far the arm bent."""
+    def front(lift):
+        points = [{"x": .5, "y": .5, "z": 0, "visibility": 0} for _ in range(33)]
+        for i, x in enumerate((.42, .58)):
+            put = lambda j, px, py: points[j].update(x=px, y=py, visibility=.99)
+            put(S[i], x, .30); put(H[i], x, .62); put(E[i], x, .46)
+            # lift 1 = wrist up by a forearm (full curl), -1 = hanging straight down.
+            wrist_y = .46 - .13 * lift
+            put(W[i], x, wrist_y)
+        return points
+
+    tracker = ExerciseTracker("curl")
+    for t, lift in enumerate([-1, -1, 0, .7, .9, .7, 0, -1, -1]):
+        result, _ = tracker.track(front(lift), 16, 9, t * .3)
+    assert result["rep"] == 1
+

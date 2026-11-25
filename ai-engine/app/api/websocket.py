@@ -56,8 +56,10 @@ class WorkoutSessionManager:
 
         result, confidence = self.tracker.track(landmarks, frame.shape[1], frame.shape[0], now)
         if result is None:
-            payload = self.unavailable("partial_body", VIEWS[self.exercise]) if landmarks else (
-                self.unavailable("no_person", "Step into the camera frame."))
+            # A joint or the whole body can drop out for a frame; the tracker keeps the
+            # rep in progress and drops it itself after MAX_GAP, so don't interrupt here.
+            payload = self.unavailable("partial_body", VIEWS[self.exercise], interrupt=False) if landmarks else (
+                self.unavailable("no_person", "Step into the camera frame.", interrupt=False))
         else:
             angles = result.pop("metrics")
             payload = {
@@ -74,8 +76,9 @@ class WorkoutSessionManager:
         }
         return payload
 
-    def unavailable(self, status, message):
-        self.pause()
+    def unavailable(self, status, message, interrupt=True):
+        if interrupt:
+            self.pause()
         return {
             "exercise": self.exercise, "rep": self.tracker.cycle.rep_count, "phase": "idle",
             "formScore": self.tracker.cycle.form_score, "instantScore": None,

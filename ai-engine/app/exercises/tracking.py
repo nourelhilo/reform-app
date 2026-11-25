@@ -1,5 +1,5 @@
 """Exercise-specific geometry in the image plane, with square pixels."""
-from math import hypot, isfinite
+from math import acos, degrees, hypot, isfinite
 from app.analysis.angles import calculate_angle_2d, calculate_vertical_angle
 from app.pose.landmarks import PoseLandmark as P
 from time import monotonic
@@ -19,7 +19,9 @@ RULES = {
     "squat": (165, 150, 95, 0.55, ("standing", "descending", "bottom", "ascending")),
     # Filmed push-ups lock out at about 150-157° in the camera plane (real-video check).
     "pushup": (150, 140, 100, 0.45, ("plank", "descending", "bottom", "ascending")),
-    "curl": (160, 145, 55, 0.45, ("extended", "curling", "peak", "lowering")),
+    # Curls are read from the front as well as the side (see RepTracker.curl), where
+    # camera estimates top out near 50-62° and straight arms read about 156-178°.
+    "curl": (150, 140, 65, 0.45, ("extended", "curling", "peak", "lowering")),
     "lunge": (160, 145, 95, 0.60, ("standing", "descending", "bottom", "ascending")),
     "jumping_jack": (35, 55, 130, 0.34, ("closed", "opening", "open", "closing")),
     "shoulder_press": (105, 120, 155, 0.45, ("racked", "pressing", "lockout", "lowering")),
@@ -33,7 +35,7 @@ IDEAL = {"squat": 80, "pushup": 80, "curl": 40, "lunge": 85, "jumping_jack": 165
 VIEWS = {
     "squat": "Turn side-on and show your shoulder, hip, knee and ankle.",
     "pushup": "Use a side view and show your full plank, from shoulder to ankle.",
-    "curl": "Use a side view and keep one arm and your hip in frame.",
+    "curl": "Face the camera or turn sideways, with shoulders, elbows, wrists and hips in frame.",
     "lunge": "Use a side view and keep both legs and shoes in frame.",
     "jumping_jack": "Face the camera and leave room above your hands and around your feet.",
     "shoulder_press": "Face the camera and leave room above your head for both hands.",
@@ -142,23 +144,48 @@ class RepTracker:
     def side_motion(self, p):
         if self.exercise == "pushup":
             return self.pushup(p)
-        groups = {
-            "squat": (S, H, K, A),
-            "curl": (S, E, W, H),
-        }[self.exercise]
-        i, joints = self.pick_side(p, groups)
+        if self.exercise == "curl":
+            return self.curl(p)
+        i, joints = self.pick_side(p, (S, H, K, A))
         if not p.visible(joints):
             return None
-        if self.exercise in ("squat", "curl") and p.visible(S):
-            if abs(p.dx(*S)) > .9 * p.distance(S[i], H[i]):
-                return None
+        if p.visible(S) and abs(p.dx(*S)) > .9 * p.distance(S[i], H[i]):
+            return None
         torso = calculate_vertical_angle(p.point(H[i]), p.point(S[i]))
-        if self.exercise == "squat":
-            angle = p.angle(H[i], K[i], A[i])
-            # Wide stances and other squat variants can legitimately lean more.
-            issues = (("Keep your chest up.", (S[i], H[i])),) if torso > 65 else ()
-            return self.bend(angle, joints, {"kneeAngle": round(angle, 1)}, issues)
-        angle = p.angle(S[i], E[i], W[i])
+        angle = p.angle(H[i], K[i], A[i])
+        # Wide stances and other squat variants can legitimately lean more.
+        issues = (("Keep your chest up.", (S[i], H[i])),) if torso > 65 else ()
+        return self.bend(angle, joints, {"kneeAngle": round(angle, 1)}, issues)
+
+    def curl_angle(self, p, i):
+        """Elbow bend for one arm that holds up from the side, front or an angle.
+
+        Facing the camera the forearm swings toward the lens, so the elbow angle in
+        the image can read anything. The wrist's height above the elbow, scaled by
+        forearm length, gives the same bend for an upper arm held at the side. A
+        bend only counts when both readings agree the arm is clearly bent.
+        """
+        image = p.angle(S[i], E[i], W[i])
+        (_, ey), (_, wy) = p.point(E[i]), p.point(W[i])
+        forearm = max(p.distance(E[i], W[i]), 0.85 * p.distance(S[i], E[i]), 1e-6)
+        lift = max(-1.0, min(1.0, (ey - wy) / forearm))
+        height = degrees(acos(lift))
+        low, high = sorted((image, height))
+        return max(30.0, low) if high <= 110 else high
+
+    def curl(self, p):
+        arms = [i for i in range(2) if p.visible((S[i], E[i], W[i], H[i]))]
+        if not arms:
+            return None
+        # Follow the arm doing the most work; a single arm or both together both count.
+        if self.side not in arms or len(arms) == 2:
+            bends = {i: self.curl_angle(p, i) for i in arms}
+            if self.side not in arms or bends[self.side] > min(bends.values()) + 25:
+                self.side = min(bends, key=bends.get)
+        i = self.side
+        joints = (S[i], E[i], W[i], H[i])
+        angle = self.curl_angle(p, i)
+        torso = calculate_vertical_angle(p.point(H[i]), p.point(S[i]))
         issues = []
         if p.angle(H[i], S[i], E[i]) > 30:
             issues.append(("Keep your upper arm close to your side.", (S[i], E[i])))
@@ -292,7 +319,7 @@ def ExerciseTracker(exercise):
 # exercise video (docs/pose-validation.md). The other rules stay for future
 # validation but cannot be started. Keep in sync with ACTIVE in
 # frontend/src/services/exercises.js and backend/src/config/exercises.js.
-ACTIVE = ("squat", "pushup", "lunge", "plank")
+ACTIVE = ("squat", "pushup", "curl", "lunge", "plank")
 
 
 def _all_exercises():

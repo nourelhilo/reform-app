@@ -8,6 +8,6 @@ const EXERCISES = Object.freeze([
 // Exercises new workouts may contain: only those whose counting held up on real
 // exercise video. Keep in sync with ACTIVE in ai-engine/app/exercises/tracking.py
 // and frontend/src/services/exercises.js.
-const ACTIVE_EXERCISES = Object.freeze(['squat', 'pushup', 'lunge', 'plank']);
+const ACTIVE_EXERCISES = Object.freeze(['squat', 'pushup', 'curl', 'lunge', 'plank']);
 
 module.exports = { EXERCISES, ACTIVE_EXERCISES };

@@ -37,7 +37,7 @@ def test_socket_rejects_unknown_origin_or_exercise():
         ("/ws/workout", {"origin": "https://example.invalid"}),
         ("/ws/workout?exercise=unknown", LOCAL_ORIGIN),
         # Retired: counting did not hold up on real exercise video.
-        ("/ws/workout?exercise=curl", LOCAL_ORIGIN),
+        ("/ws/workout?exercise=wall_sit", LOCAL_ORIGIN),
         ("/ws/workout?exercise=jumping_jack", LOCAL_ORIGIN),
     ):
         with pytest.raises(WebSocketDisconnect) as denied:

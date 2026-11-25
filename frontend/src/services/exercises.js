@@ -2,7 +2,7 @@
 const catalog = {
   squat: { name: 'Squats', area: 'Lower body', view: 'Side view', angle: 'Knee angle', key: 'kneeAngle', target: '≤95° at the bottom', guide: 'Turn sideways. Keep one shoulder, hip, knee and ankle in frame.' },
   pushup: { name: 'Push-ups', area: 'Upper body', view: 'Side view', angle: 'Elbow angle', key: 'elbowAngle', target: '≤95° at the bottom', guide: 'Place the camera low and to your side. Show your full plank, from shoulder to ankle.' },
-  curl: { name: 'Bicep curls', area: 'Upper body', view: 'Side view', angle: 'Elbow angle', key: 'elbowAngle', target: '≤55° at the top', guide: 'Turn sideways. Keep the working wrist, elbow, shoulder and hip in frame.' },
+  curl: { name: 'Bicep curls', area: 'Upper body', view: 'Front or side view', angle: 'Elbow angle', key: 'elbowAngle', target: '≤65° at the top', guide: 'Face the camera or turn sideways. Keep your shoulders, elbows, wrists and hips in frame, upper arms at your sides.' },
   lunge: { name: 'Forward lunges', area: 'Lower body', view: 'Side view', angle: 'Lead knee angle', key: 'leadKneeAngle', target: '≤95° at the bottom', guide: 'Turn sideways. Keep both legs and shoes in frame, with room to step forward and back.' },
   shoulder_press: { name: 'Shoulder press', area: 'Upper body', view: 'Front view', angle: 'Elbow angle', key: 'elbowAngle', target: '≥155° with hands overhead', guide: 'Face the camera. Start with hands at shoulder height and leave room above your head.' },
   lateral_raise: { name: 'Lateral raises', area: 'Upper body', view: 'Front view', angle: 'Arm elevation', key: 'armElevation', target: '≥80°, up to shoulder height', guide: 'Face the camera. Keep both arms and your hips in frame.' },
@@ -15,7 +15,7 @@ const catalog = {
 
 // Offered in workouts: only exercises whose counting held up on real exercise video
 // (see docs/pose-validation.md). Keep in sync with ACTIVE in ai-engine/app/exercises/tracking.py.
-export const ACTIVE = ['squat', 'pushup', 'lunge', 'plank'];
+export const ACTIVE = ['squat', 'pushup', 'curl', 'lunge', 'plank'];
 export const exercises = Object.fromEntries(ACTIVE.map(id => [id, catalog[id]]));
 
 export function getExerciseList(value) {
@@ -31,7 +31,7 @@ export const gradeFor = score => score >= 90 ? 'A' : score >= 80 ? 'B' : score >
 // Default set plan. Users change it on the setup screen.
 export const defaultPlan = { sets: 2, repsPerSet: 10, holdSeconds: 30, restSeconds: 45, weights: {} };
 // Exercises where people often hold a weight.
-export const weighted = new Set(['squat', 'lunge']);
+export const weighted = new Set(['curl', 'squat', 'lunge']);
 
 export function getPlan(value) {
   const pick = (key, min, max) => {

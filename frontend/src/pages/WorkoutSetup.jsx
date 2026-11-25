@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Activity, ArrowLeft, ArrowRight, Check, Minus, MoveVertical, PersonStanding } from 'lucide-react';
+import { Activity, ArrowLeft, ArrowRight, Check, Dumbbell, Minus, MoveVertical, PersonStanding } from 'lucide-react';
 import { exercises, getExerciseList, getPlan, weighted } from '../services/exercises';
 
-const icons = { squat: MoveVertical, pushup: Activity, lunge: PersonStanding, plank: Minus };
+const icons = { squat: MoveVertical, pushup: Activity, curl: Dumbbell, lunge: PersonStanding, plank: Minus };
 
 // [key, label, min, max, step, shown when]
 const planFields = [

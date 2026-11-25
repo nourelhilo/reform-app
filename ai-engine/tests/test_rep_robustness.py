@@ -42,7 +42,7 @@ def test_counts_every_full_rep(exercise, conditions):
         assert run(exercise, *RANGES[exercise], 8, seed=seed, **conditions) == 8
 
 
-@pytest.mark.parametrize("exercise,top,bottom", [("squat", 172, 115), ("pushup", 170, 115), ("curl", 165, 75)])
+@pytest.mark.parametrize("exercise,top,bottom", [("squat", 172, 115), ("pushup", 170, 115), ("curl", 165, 85)])
 def test_ignores_partial_reps_and_standing_still(exercise, top, bottom):
     for seed in range(3):
         assert run(exercise, top, bottom, 8, jitter=6, seed=seed) == 0
