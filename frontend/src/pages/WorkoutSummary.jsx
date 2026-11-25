@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { ArrowRight, RotateCcw } from 'lucide-react';
-import { exercises, gradeFor } from '../services/exercises';
+import { exerciseName, gradeFor, isHold } from '../services/exercises';
 import { api } from '../services/api';
 import { guestWorkouts } from '../services/guestWorkouts';
 import { useAuth } from '../hooks/useAuth';
@@ -61,13 +61,13 @@ export function WorkoutSummary() {
     <section className="studio-panel">
       <h2>Movement Quality</h2>
       <ul className="summary-list">{data.exercises.map(ex => {
-        const hold = ex.holdSeconds > 0 || exercises[ex.exerciseName]?.hold;
+        const hold = ex.holdSeconds > 0 || isHold(ex.exerciseName);
         const counted = hold ? ex.holdSeconds > 0 : ex.totalReps > 0;
         const faults = faultCounts(ex);
         return <li key={ex.exerciseName}>
           <div className="rep-grade">
             {counted && <b data-grade={gradeFor(ex.averageFormScore)}>{gradeFor(ex.averageFormScore)}</b>}
-            <p><strong>{exercises[ex.exerciseName]?.name || ex.exerciseName}</strong>{ex.weightKg ? ` · ${ex.weightKg} kg` : ''}<br/>
+            <p><strong>{exerciseName(ex.exerciseName)}</strong>{ex.weightKg ? ` · ${ex.weightKg} kg` : ''}<br/>
               {hold ? `${ex.holdSeconds || 0} s held in good form` : `${ex.totalReps} ${ex.totalReps === 1 ? 'rep' : 'reps'}`}
               {' · '}{counted ? ex.averageFormScore + '% estimate' : 'No estimate'}
               {ex.sets?.length > 0 && <> · sets {ex.sets.map(set => hold ? `${set.seconds}s` : set.reps).join(' / ')}</>}</p>

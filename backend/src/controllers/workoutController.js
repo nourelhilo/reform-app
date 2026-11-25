@@ -1,8 +1,8 @@
 const Workout = require('../models/Workout');
 
-const { EXERCISES } = require('../config/exercises');
+const { ACTIVE_EXERCISES } = require('../config/exercises');
 
-const exerciseNames = new Set(EXERCISES);
+const exerciseNames = new Set(ACTIVE_EXERCISES);
 const GRADES = new Set(['A', 'B', 'C', 'D']);
 const num = value => (Number.isFinite(Number(value)) && value !== null && value !== '' ? Number(value) : undefined);
 const cues = (list, max) => (Array.isArray(list) ? list.filter(item => typeof item === 'string').map(item => item.slice(0, 160)).slice(0, max) : []);

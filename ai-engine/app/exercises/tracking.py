@@ -288,8 +288,16 @@ def ExerciseTracker(exercise):
     return HoldTracker(exercise) if exercise in HOLDS else RepTracker(exercise)
 
 
+# Exercises the live service accepts: only those whose counting held up on real
+# exercise video (docs/pose-validation.md). The other rules stay for future
+# validation but cannot be started. Keep in sync with ACTIVE in
+# frontend/src/services/exercises.js and backend/src/config/exercises.js.
+ACTIVE = ("squat", "pushup", "lunge", "plank")
+
+
 def _all_exercises():
+    """View guidance for every exercise the live service accepts."""
     from app.exercises.hold import HOLDS
     views = dict(VIEWS)
     views.update({name: rule[3] for name, rule in HOLDS.items()})
-    return views
+    return {name: views[name] for name in ACTIVE}

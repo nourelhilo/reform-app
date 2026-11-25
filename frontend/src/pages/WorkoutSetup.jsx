@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Activity, Armchair, ArrowLeft, ArrowRight, ArrowUpFromLine, Bed, Check, Dumbbell, Minus, MoveHorizontal, MoveVertical, PersonStanding, Slash, Zap } from 'lucide-react';
+import { Activity, ArrowLeft, ArrowRight, Check, Minus, MoveVertical, PersonStanding } from 'lucide-react';
 import { exercises, getExerciseList, getPlan, weighted } from '../services/exercises';
 
-const icons = { squat: MoveVertical, pushup: Activity, curl: Dumbbell, lunge: PersonStanding, jumping_jack: Zap,
-  shoulder_press: ArrowUpFromLine, lateral_raise: MoveHorizontal, glute_bridge: Bed,
-  plank: Minus, side_plank: Slash, wall_sit: Armchair };
+const icons = { squat: MoveVertical, pushup: Activity, lunge: PersonStanding, plank: Minus };
 
 // [key, label, min, max, step, shown when]
 const planFields = [

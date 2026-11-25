@@ -36,6 +36,9 @@ def test_socket_rejects_unknown_origin_or_exercise():
     for url, headers in (
         ("/ws/workout", {"origin": "https://example.invalid"}),
         ("/ws/workout?exercise=unknown", LOCAL_ORIGIN),
+        # Retired: counting did not hold up on real exercise video.
+        ("/ws/workout?exercise=curl", LOCAL_ORIGIN),
+        ("/ws/workout?exercise=jumping_jack", LOCAL_ORIGIN),
     ):
         with pytest.raises(WebSocketDisconnect) as denied:
             with client.websocket_connect(url, headers=headers):
@@ -48,7 +51,7 @@ def test_bad_frames_do_not_crash_or_advance_session(monkeypatch):
     client = TestClient(app)
     valid_jpeg = cv2.imencode(".jpg", np.zeros((48, 64, 3), np.uint8))[1].tobytes()
 
-    with client.websocket_connect("/ws/workout?exercise=curl", headers=LOCAL_ORIGIN) as socket:
+    with client.websocket_connect("/ws/workout?exercise=pushup", headers=LOCAL_ORIGIN) as socket:
         socket.send_text("invalid json")
         assert socket.receive_json()["visibility"]["status"] == "error"
         socket.send_bytes(b"not an image")

@@ -1,4 +1,5 @@
-export const exercises = {
+// Every exercise Reform has offered. Names stay here so older history still reads well.
+const catalog = {
   squat: { name: 'Squats', area: 'Lower body', view: 'Side view', angle: 'Knee angle', key: 'kneeAngle', target: '≤95° at the bottom', guide: 'Turn sideways. Keep one shoulder, hip, knee and ankle in frame.' },
   pushup: { name: 'Push-ups', area: 'Upper body', view: 'Side view', angle: 'Elbow angle', key: 'elbowAngle', target: '≤95° at the bottom', guide: 'Place the camera low and to your side. Show your full plank, from shoulder to ankle.' },
   curl: { name: 'Bicep curls', area: 'Upper body', view: 'Side view', angle: 'Elbow angle', key: 'elbowAngle', target: '≤55° at the top', guide: 'Turn sideways. Keep the working wrist, elbow, shoulder and hip in frame.' },
@@ -12,19 +13,25 @@ export const exercises = {
   jumping_jack: { name: 'Jumping jacks', area: 'Full body', view: 'Front view', angle: 'Arm elevation', key: 'armElevation', target: '≥150° with feet apart', guide: 'Face the camera. Leave room for both arms overhead and your feet to move apart.' },
 };
 
+// Offered in workouts: only exercises whose counting held up on real exercise video
+// (see docs/pose-validation.md). Keep in sync with ACTIVE in ai-engine/app/exercises/tracking.py.
+export const ACTIVE = ['squat', 'pushup', 'lunge', 'plank'];
+export const exercises = Object.fromEntries(ACTIVE.map(id => [id, catalog[id]]));
+
 export function getExerciseList(value) {
   const supported = Array.isArray(value) ? [...new Set(value.filter(id => Object.hasOwn(exercises, id)))] : [];
   return supported.length ? supported : ['squat'];
 }
 
-export const exerciseName = id => exercises[id]?.name || id;
+export const exerciseName = id => catalog[id]?.name || id;
+export const isHold = id => Boolean(catalog[id]?.hold);
 
 export const gradeFor = score => score >= 90 ? 'A' : score >= 80 ? 'B' : score >= 65 ? 'C' : 'D';
 
 // Default set plan. Users change it on the setup screen.
 export const defaultPlan = { sets: 2, repsPerSet: 10, holdSeconds: 30, restSeconds: 45, weights: {} };
 // Exercises where people often hold a weight.
-export const weighted = new Set(['curl', 'shoulder_press', 'lateral_raise', 'squat', 'lunge', 'glute_bridge']);
+export const weighted = new Set(['squat', 'lunge']);
 
 export function getPlan(value) {
   const pick = (key, min, max) => {

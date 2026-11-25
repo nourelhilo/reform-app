@@ -1,11 +1,11 @@
-const { EXERCISES } = require('../config/exercises');
+const { ACTIVE_EXERCISES } = require('../config/exercises');
 const db = require('../config/db');
 
 const defaultPreferences = {
   voiceCoaching: false,
   soundEffects: true,
   units: 'metric',
-  preferredExercises: EXERCISES,
+  preferredExercises: ACTIVE_EXERCISES,
   cameraIndex: 0,
   showSkeletonOverlay: true,
   devOverlay: false,
