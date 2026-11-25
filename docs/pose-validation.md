@@ -6,6 +6,7 @@ Reform reports inclusion angles in the camera plane. A straight knee or elbow is
 | --- | --- | --- |
 | Squat | [Goniometer-based squat study](https://pmc.ncbi.nlm.nih.gov/articles/PMC4064719/): 90° knee flexion is above parallel; actual parallel is defined separately. | Knee ≤95° at the bottom and ≥165° at the top. The app does not verify parallel depth or knee valgus. |
 | Standard push-up | [NASM](https://www.nasm.org/resource-center/exercise-library/push-up): about 90° elbow bend or chest near the floor. | Elbow ≤100° at the bottom and ≥150° at the top (filmed lockouts read 152–157°). The app checks the shoulder–hip–ankle line; it does not measure chest clearance. |
+| Bicep curl | [Elbow-flexor research](https://pmc.ncbi.nlm.nih.gov/articles/PMC8489980/): full-range protocols used up to 130° flexion, equivalent to a 50° inclusion angle. | Elbow ≤65° at the top and ≥150° when straight. From the front, the bend comes from the wrist's height above the elbow; a curl counts only when that and the image elbow angle both show a clear bend. Raising your hands with elbows at your sides looks the same as a curl, so mid-set gestures can count. |
 | Forward lunge | [Forward lunge biomechanics](https://doi.org/10.2519/jospt.2017.6336): measured roughly 90–100° of lead-knee flexion. | Lead knee ≤95° in a split stance; then return toward extension with feet back in. |
 | Plank (timed) | Straight body line. | Shoulder–hip–ankle line 160–180°; time counts only inside that band. |
 
@@ -29,8 +30,10 @@ Each exercise was streamed through the live pose service from openly licensed Wi
 | Plank | *Naval Station Rota Navy 250 Plank Challenge* | Holding only when a planking body was tracked (body line 165–179°); no hold on standing people | Offered |
 | Jumping jack | *Jumping jacks and burpees* | 1 of ~8 counted, before and after a fix | Retired |
 | Shoulder press | *Overhead Push Press*, *Overhead Press*, two more | 1 of 3 presses counted; landmarks unreliable when arms overhead | Retired |
-| Bicep curl | *Bicep Curls*, *EZ Bar Curl*, *CURL BÍCEPS* | 0 counted; elbow angles jumped to impossible 3–11° readings | Retired |
+| Bicep curl | *Muscle Strengthening at Home – Bicep Curls* (front view); *CURL BÍCEPS* (angled); *EZ Bar Curl and Straight Bar Curl* | 2 of 2 completed curls on the front and angled clips (was 0); every EZ-bar curl counted, but 3 extra counts came from the coach raising his hands while talking | Offered |
 | Lateral raise, glute bridge, side plank, wall sit | none found | Not validated | Retired |
+
+The live session no longer drops a rep when a joint disappears for a single frame; the tracker's 1.2-second grace period now applies end to end (it was being overridden by the session, which hid reps that passed in local tests). Jumping jacks failed before this fix and have not been re-tested since.
 
 Retired exercises keep their rules and tests in `ai-engine` but the live service, setup screen and save API do not accept them. Their names still display in older history. To bring one back, add it to `ACTIVE` in `ai-engine/app/exercises/tracking.py`, `frontend/src/services/exercises.js` and `backend/src/config/exercises.js` once it passes a real-video check like the one above.
 
