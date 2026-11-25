@@ -17,7 +17,7 @@ router.get('/health', async (req, res) => {
         projectId: fbStatus.projectId,
       },
       aiEngine: {
-        expectedUrl: process.env.VITE_AI_ENGINE_WS_URL || 'ws://localhost:8000/ws/workout',
+        expectedUrl: process.env.VITE_AI_ENGINE_WS_URL || (process.env.VERCEL ? 'same origin: /ws/workout' : 'ws://localhost:8000/ws/workout'),
       },
     },
   });
